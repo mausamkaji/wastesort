@@ -1,0 +1,6 @@
+{
+  "name": "WasteSort: Waste & Recycling Quest",
+  "description": "Master waste management and recycling best practices through interactive gamified sorting challenges, contamination detective puzzles, and AI item inspection.",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
