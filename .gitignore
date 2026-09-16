@@ -7,3 +7,5 @@ coverage/
 .env*
 !.env.example
 .claude/skills/
+bun.lock
+bun.lockb
