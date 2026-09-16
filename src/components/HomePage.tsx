@@ -714,7 +714,11 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
           {/* Quick-Jump Waste Search Bar with AI & Google Grounding */}
           <div ref={searchContainerRef} className="pt-2 scroll-mt-20 sm:scroll-mt-28">
             <div className="relative max-w-2xl">
-              <div
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleAiSearch(searchQuery);
+                }}
                 className={`relative flex items-center transition-all duration-200 rounded-2xl ${
                   isInputFocused ? 'ring-4 ring-amber-400/60 shadow-xl' : 'shadow-lg'
                 }`}
@@ -733,12 +737,6 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
                   }}
                   onFocus={handleSearchFocus}
                   onBlur={handleSearchBlur}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault();
-                      handleAiSearch(searchQuery);
-                    }
-                  }}
                   enterKeyHint="search"
                   autoComplete="off"
                   autoCorrect="off"
@@ -765,8 +763,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
                   )}
                   <button
                     id="home-ai-search-btn"
-                    type="button"
-                    onClick={() => handleAiSearch(searchQuery)}
+                    type="submit"
                     disabled={isAiSearching || !searchQuery.trim()}
                     className="inline-flex items-center gap-1.5 bg-green-700 hover:bg-green-600 disabled:opacity-50 text-white font-bold text-xs px-2.5 sm:px-3.5 py-2 rounded-xl shadow-xs transition-all cursor-pointer whitespace-nowrap"
                     title="Verify disposal stream using Gemini AI & Google Search data"
@@ -785,7 +782,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
                     )}
                   </button>
                 </div>
-              </div>
+              </form>
 
               {/* Mobile Live Typing Bar - placed directly below search box so user clearly sees what they type above soft keyboard */}
               {isInputFocused && (
