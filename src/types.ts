@@ -24,6 +24,7 @@ export interface WasteItem {
   whyItGoesHere: string;
   wishcyclingWarning?: string;
   funFact?: string;
+  acceptableBins?: AcceptableBinOption[];
   resinCode?: string; // e.g. "PET 1", "PP 5"
   difficulty: 'beginner' | 'tricky' | 'expert';
   tags: string[];

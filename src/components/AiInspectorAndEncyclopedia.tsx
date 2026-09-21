@@ -1973,7 +1973,11 @@ export const AiInspectorAndEncyclopedia: React.FC<AiInspectorAndEncyclopediaProp
                         <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${getBinBadgeClass(item.bin, item.category, item.tags, item.name)}`}>
                           {getBinLabel(item.bin, item.category, item.tags, item.name)}
                         </span>
-                        {item.resinCode && (
+                        {item.acceptableBins && item.acceptableBins.length > 1 ? (
+                          <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded-full shrink-0" title="Accepted in multiple waste streams">
+                            ✨ 2 Options
+                          </span>
+                        ) : item.resinCode && (
                           <span className="text-[10px] font-semibold text-stone-500">
                             #{item.resinCode}
                           </span>
@@ -2035,6 +2039,36 @@ export const AiInspectorAndEncyclopedia: React.FC<AiInspectorAndEncyclopediaProp
                     </span>
                   </div>
                 </div>
+
+                {/* Dual/Multi-Stream Acceptance: both answers are correct depending on council infrastructure */}
+                {selectedCatalogItem.acceptableBins && selectedCatalogItem.acceptableBins.length > 1 && (
+                  <div className="bg-white border-2 border-emerald-400/80 rounded-2xl p-4 space-y-3">
+                    <div className="flex items-start gap-2.5">
+                      <span className="p-1.5 bg-emerald-600 text-white rounded-lg text-sm shrink-0">✨</span>
+                      <p className="text-xs sm:text-sm font-bold text-stone-900">
+                        Accepted in Multiple Waste Streams — <span className="font-normal text-stone-600">both answers below are correct.</span>
+                      </p>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {selectedCatalogItem.acceptableBins.map((opt, idx) => (
+                        <div key={idx} className="bg-stone-50/80 border border-emerald-300/70 rounded-xl p-3 space-y-1.5">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className={`text-[11px] font-black px-2 py-0.5 rounded-lg border ${getBinBadgeClass(opt.bin, undefined, undefined, opt.binName)}`}>
+                              {opt.binName}
+                            </span>
+                            <span className="text-[10px] font-bold text-emerald-800 bg-emerald-100/90 px-1.5 py-0.5 rounded-full shrink-0">
+                              Option #{idx + 1}
+                            </span>
+                          </div>
+                          {opt.condition && (
+                            <div className="text-[11px] font-bold text-stone-800">{opt.condition}</div>
+                          )}
+                          <p className="text-[11px] text-stone-600 leading-relaxed">{opt.reason}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 {/* Dedicated AI Disposal Validation Card inside Modal */}
                 <div className="bg-gradient-to-br from-emerald-900 to-stone-900 text-white p-4 rounded-2xl border border-emerald-700/60 space-y-3">
