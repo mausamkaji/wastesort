@@ -675,17 +675,17 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
       {/* Hero Welcome Banner with Quick Search */}
-      <section className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-green-950 via-stone-900 to-amber-950 text-white p-6 sm:p-10 shadow-2xl shadow-green-950/40 border border-amber-800/40">
+      <section className="relative rounded-[2rem] overflow-hidden bg-gradient-to-br from-emerald-950 via-stone-950 to-stone-900 text-white p-6 sm:p-10 shadow-2xl shadow-emerald-950/40 border border-white/10">
         {/* Animated glow blobs + dot grid texture */}
         <div className="absolute inset-0 pointer-events-none">
-          <div className="absolute -top-20 -right-10 w-72 h-72 bg-amber-500/20 rounded-full blur-3xl animate-blob" />
-          <div className="absolute bottom-0 left-1/3 w-64 h-64 bg-green-500/20 rounded-full blur-3xl animate-blob animation-delay-2000" />
-          <div className="absolute inset-0 bg-grid-pattern opacity-40" />
+          <div className="absolute -top-20 -right-10 w-72 h-72 bg-emerald-500/20 rounded-full blur-3xl animate-blob" />
+          <div className="absolute bottom-0 left-1/3 w-64 h-64 bg-amber-500/15 rounded-full blur-3xl animate-blob animation-delay-2000" />
+          <div className="absolute inset-0 bg-grid-pattern opacity-30" />
         </div>
 
         <div className="relative z-10 max-w-3xl space-y-5">
-          <div className="inline-flex items-center gap-2 bg-green-900/80 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-amber-700/50 text-xs sm:text-sm font-extrabold text-amber-200 shadow-2xs animate-fade-in-up">
-            <Sparkles className="w-4 h-4 text-amber-300 animate-pulse" />
+          <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/15 text-xs sm:text-sm font-extrabold text-emerald-200 shadow-2xs animate-fade-in-up">
+            <Sparkles className="w-4 h-4 text-emerald-300 animate-pulse" />
             <span>Complete Modern Waste Separation & Circular Economy Guide</span>
           </div>
 
@@ -703,7 +703,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
             ].map(stat => (
               <span
                 key={stat.label}
-                className="inline-flex items-center gap-1.5 bg-white/10 hover:bg-white/15 backdrop-blur-sm border border-white/15 px-3 py-1 rounded-full text-[11px] sm:text-xs font-bold text-amber-50 transition-colors"
+                className="inline-flex items-center gap-1.5 bg-white/10 hover:bg-white/15 backdrop-blur-sm border border-white/15 px-3 py-1 rounded-full text-[11px] sm:text-xs font-bold text-emerald-50 transition-colors"
               >
                 <span>{stat.icon}</span>
                 {stat.label}
@@ -711,7 +711,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
             ))}
           </div>
 
-          <p className="text-amber-50/90 text-sm sm:text-base leading-relaxed max-w-2xl font-normal">
+          <p className="text-stone-200/90 text-sm sm:text-base leading-relaxed max-w-2xl font-normal">
             Every year, millions of tons of clean recyclables are ruined by wishcycling and improper binning. Explore our complete guide to all 9 municipal waste streams & drop-off networks, learn critical preparation steps, and test your skills in interactive challenges!
           </p>
 
@@ -724,7 +724,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
                   handleAiSearch(searchQuery);
                 }}
                 className={`relative flex items-center transition-all duration-200 rounded-2xl ${
-                  isInputFocused ? 'ring-4 ring-amber-400/60 shadow-xl' : 'shadow-lg'
+                  isInputFocused ? 'ring-4 ring-emerald-400/50 shadow-xl' : 'shadow-lg'
                 }`}
               >
                 <Search className="w-5 h-5 absolute left-3.5 sm:left-4 top-1/2 -translate-y-1/2 text-stone-400 pointer-events-none shrink-0" />
@@ -746,7 +746,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
                   autoCorrect="off"
                   spellCheck={false}
                   placeholder="Search any rubbish (e.g. bubble wrap, air pillow, clothes)..."
-                  className="w-full pl-10 sm:pl-12 pr-28 sm:pr-44 py-3.5 rounded-2xl bg-white text-stone-900 placeholder:text-stone-400 text-base sm:text-sm font-semibold focus:outline-none border border-amber-200 transition-colors"
+                  className="w-full pl-10 sm:pl-12 pr-28 sm:pr-44 py-3.5 rounded-2xl bg-white text-stone-900 placeholder:text-stone-400 text-base sm:text-sm font-semibold focus:outline-none border border-stone-200 transition-colors"
                 />
                 <div className="absolute right-1.5 sm:right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
                   {searchQuery && (
@@ -769,7 +769,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
                     id="home-ai-search-btn"
                     type="submit"
                     disabled={isAiSearching || !searchQuery.trim()}
-                    className="inline-flex items-center gap-1.5 bg-green-700 hover:bg-green-600 disabled:opacity-50 text-white font-bold text-xs px-2.5 sm:px-3.5 py-2 rounded-xl shadow-xs transition-all cursor-pointer whitespace-nowrap"
+                    className="inline-flex items-center gap-1.5 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 disabled:opacity-50 text-white font-bold text-xs px-2.5 sm:px-3.5 py-2 rounded-xl shadow-md shadow-emerald-900/20 transition-all cursor-pointer whitespace-nowrap"
                     title="Verify disposal stream using Gemini AI & Google Search data"
                   >
                     {isAiSearching ? (
@@ -844,7 +844,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
                 </div>
               )}
             </div>
-            <div className="flex items-center gap-2 flex-wrap text-xs text-amber-100/90 mt-2.5 font-medium">
+            <div className="flex items-center gap-2 flex-wrap text-xs text-stone-300/90 mt-2.5 font-medium">
               <span>Popular searches:</span>
               {[
                 'Bubble Wrap',
@@ -873,7 +873,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
             <button
               id="cta-bin-master"
               onClick={() => onNavigate('bin_master')}
-              className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-400 to-orange-400 hover:from-amber-300 hover:to-orange-300 text-stone-950 font-black text-xs sm:text-sm px-5 py-3 rounded-2xl shadow-lg shadow-amber-500/30 transition-all cursor-pointer transform hover:-translate-y-0.5 hover:shadow-amber-400/50"
+              className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-400 to-amber-300 hover:from-amber-300 hover:to-amber-200 text-stone-950 font-black text-xs sm:text-sm px-5 py-3 rounded-2xl shadow-lg shadow-amber-500/20 transition-all cursor-pointer transform hover:-translate-y-0.5 hover:shadow-amber-400/40"
             >
               <span>Play Bin Master</span>
               <ArrowRight className="w-4 h-4" />
@@ -881,10 +881,10 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
             <button
               id="cta-ai-inspector"
               onClick={() => onNavigate('ai_inspector')}
-              className="inline-flex items-center gap-2 bg-white/15 hover:bg-white/25 text-white font-bold text-xs sm:text-sm px-5 py-3 rounded-2xl border border-white/30 backdrop-blur-xs transition-all cursor-pointer transform hover:-translate-y-0.5"
+              className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white font-bold text-xs sm:text-sm px-5 py-3 rounded-2xl border border-white/20 backdrop-blur-xs transition-all cursor-pointer transform hover:-translate-y-0.5"
             >
               <span>AI Waste Inspector</span>
-              <Sparkles className="w-4 h-4 text-amber-300" />
+              <Sparkles className="w-4 h-4 text-emerald-300" />
             </button>
           </div>
         </div>
@@ -897,7 +897,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
 
       {/* Live Search Quick Results (Only visible when user types or filters) */}
       {searchQuery.trim() && (
-        <section className="bg-white p-6 sm:p-8 rounded-3xl border border-stone-200 shadow-sm space-y-4">
+        <section className="glass-strong rounded-3xl p-6 sm:p-8 space-y-4 animate-scale-in">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span className="p-1.5 bg-emerald-100 text-emerald-800 rounded-lg text-base font-bold">🔍</span>
@@ -936,7 +936,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
 
           {/* AI & Google Verified Result Card */}
           {aiSearchResult && !isAiSearching && (
-            <div className="bg-gradient-to-br from-emerald-50/70 via-white to-stone-50 border-2 border-emerald-500/60 rounded-3xl p-5 sm:p-7 shadow-xs space-y-5">
+            <div className="bg-gradient-to-br from-emerald-50/80 via-white to-stone-50 border border-emerald-300/60 rounded-3xl p-5 sm:p-7 shadow-lg shadow-emerald-900/5 space-y-5 animate-scale-in">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-emerald-100 pb-4">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
@@ -1186,10 +1186,10 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
                 key={stream.id}
                 id={`stream-tab-${stream.id}`}
                 onClick={() => setSelectedStreamId(stream.id)}
-                className={`p-3 rounded-2xl border-2 text-left transition-all cursor-pointer flex flex-col justify-between relative overflow-hidden shadow-2xs ${
+                className={`p-3 rounded-2xl border text-left transition-all duration-200 cursor-pointer flex flex-col justify-between relative overflow-hidden ${
                   isSelected
-                    ? `${stream.bgCard} ${stream.borderCard} ring-2 ring-stone-900/10 shadow-sm scale-[1.02]`
-                    : 'bg-white border-stone-200 hover:border-stone-400 opacity-80 hover:opacity-100'
+                    ? `${stream.bgCard} ${stream.borderCard} ring-2 ring-stone-900/10 shadow-lg scale-[1.02]`
+                    : 'glass border-stone-200/60 hover:border-emerald-300 opacity-85 hover:opacity-100'
                 }`}
               >
                 {/* Lid indicator banner / Drop-Off Indicator */}
@@ -1222,7 +1222,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
         </div>
 
           {/* Active Stream Deep-Dive Information Card */}
-          <div className={`p-5 sm:p-7 rounded-3xl border-2 transition-all ${activeStream.bgCard} ${activeStream.borderCard} shadow-sm space-y-5`}>
+          <div className={`p-5 sm:p-7 rounded-3xl border transition-all ${activeStream.bgCard} ${activeStream.borderCard} shadow-lg shadow-stone-900/5 space-y-5 animate-scale-in`}>
             {/* Special Callout Banner for Clothes Donation & Textiles */}
             {activeStream.id === 'cloth_recycling' && (
               <div className="p-4 sm:p-5 rounded-2xl bg-teal-500/15 border-2 border-teal-500/40 text-stone-900 space-y-1.5 shadow-2xs">
@@ -1724,7 +1724,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
         </section>
 
       {/* Interactive FAQ & Household Setup Accordion */}
-      <section className="bg-white p-6 sm:p-10 rounded-3xl border border-stone-200 shadow-2xs space-y-6">
+      <section className="glass-strong rounded-3xl p-6 sm:p-10 space-y-6">
         <div>
           <div className="flex items-center gap-2">
             <span className="p-1.5 bg-amber-100 text-amber-800 rounded-lg text-lg">❓</span>
@@ -1769,11 +1769,11 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
             return (
               <div
                 key={faq.id}
-                className="border border-stone-200 rounded-2xl overflow-hidden transition-all"
+                className="border border-stone-200/70 rounded-2xl overflow-hidden transition-all bg-white/50"
               >
                 <button
                   onClick={() => setExpandedFaqId(isOpen ? null : faq.id)}
-                  className="w-full p-4 sm:p-5 text-left bg-stone-50/70 hover:bg-stone-50 flex items-center justify-between gap-4 font-bold text-xs sm:text-sm text-stone-900 cursor-pointer"
+                  className="w-full p-4 sm:p-5 text-left hover:bg-white/60 flex items-center justify-between gap-4 font-bold text-xs sm:text-sm text-stone-900 cursor-pointer transition-colors"
                 >
                   <span className="flex items-center gap-2">
                     <span className="text-emerald-700">Q:</span>
@@ -1787,7 +1787,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
                       initial={{ height: 0, opacity: 0 }}
                       animate={{ height: 'auto', opacity: 1 }}
                       exit={{ height: 0, opacity: 0 }}
-                      className="px-5 pb-5 pt-2 bg-white text-xs sm:text-sm text-stone-700 leading-relaxed font-normal border-t border-stone-100"
+                      className="px-5 pb-5 pt-2 bg-white/40 text-xs sm:text-sm text-stone-700 leading-relaxed font-normal border-t border-stone-100"
                     >
                       {faq.a}
                     </motion.div>
@@ -1815,7 +1815,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
           {/* Bin Master Card */}
-          <div className="bg-white p-6 rounded-3xl border-2 border-stone-200 hover:border-emerald-500 transition-all shadow-2xs hover:shadow-md flex flex-col justify-between space-y-4 group">
+          <div className="glass glass-hover rounded-3xl p-6 hover:border-emerald-400/60 flex flex-col justify-between space-y-4 group">
             <div className="space-y-3">
               <span className="text-4xl p-3 bg-emerald-50 rounded-2xl inline-block border border-emerald-200/80">🎯</span>
               <h3 className="font-black text-lg text-stone-900 group-hover:text-emerald-700 transition-colors">
@@ -1835,7 +1835,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
           </div>
 
           {/* AI Inspector Card */}
-          <div className="bg-white p-6 rounded-3xl border-2 border-stone-200 hover:border-indigo-500 transition-all shadow-2xs hover:shadow-md flex flex-col justify-between space-y-4 group">
+          <div className="glass glass-hover rounded-3xl p-6 hover:border-indigo-400/60 flex flex-col justify-between space-y-4 group">
             <div className="space-y-3">
               <span className="text-4xl p-3 bg-indigo-50 rounded-2xl inline-block border border-indigo-200/80">🤖</span>
               <h3 className="font-black text-lg text-stone-900 group-hover:text-indigo-700 transition-colors">

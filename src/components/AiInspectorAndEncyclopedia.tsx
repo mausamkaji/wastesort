@@ -888,15 +888,15 @@ export const AiInspectorAndEncyclopedia: React.FC<AiInspectorAndEncyclopediaProp
   return (
     <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
       {/* Sub-tab navigation */}
-      <div className="flex items-center justify-between bg-white p-2 rounded-2xl border border-stone-200 shadow-2xs">
+      <div className="flex items-center justify-between glass p-2 rounded-2xl">
         <div className="flex items-center gap-2">
           <button
             id="subtab-ai-inspector"
             onClick={() => handleSubTabSwitch('ai_inspector')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all duration-200 cursor-pointer ${
               activeSubTab === 'ai_inspector'
-                ? 'bg-emerald-600 text-white shadow-2xs'
-                : 'text-stone-600 hover:text-stone-900 hover:bg-stone-100'
+                ? 'bg-gradient-to-r from-emerald-600 to-emerald-500 text-white shadow-md shadow-emerald-900/20'
+                : 'text-stone-600 hover:text-stone-900 hover:bg-white/60'
             }`}
           >
             <Sparkles className="w-4 h-4" />
@@ -905,10 +905,10 @@ export const AiInspectorAndEncyclopedia: React.FC<AiInspectorAndEncyclopediaProp
           <button
             id="subtab-catalog"
             onClick={() => handleSubTabSwitch('catalog')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all duration-200 cursor-pointer ${
               activeSubTab === 'catalog'
-                ? 'bg-emerald-600 text-white shadow-2xs'
-                : 'text-stone-600 hover:text-stone-900 hover:bg-stone-100'
+                ? 'bg-gradient-to-r from-emerald-600 to-emerald-500 text-white shadow-md shadow-emerald-900/20'
+                : 'text-stone-600 hover:text-stone-900 hover:bg-white/60'
             }`}
           >
             <BookOpen className="w-4 h-4" />
@@ -917,10 +917,10 @@ export const AiInspectorAndEncyclopedia: React.FC<AiInspectorAndEncyclopediaProp
           <button
             id="subtab-resin-codes"
             onClick={() => handleSubTabSwitch('resin_codes')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all duration-200 cursor-pointer ${
               activeSubTab === 'resin_codes'
-                ? 'bg-emerald-600 text-white shadow-2xs'
-                : 'text-stone-600 hover:text-stone-900 hover:bg-stone-100'
+                ? 'bg-gradient-to-r from-emerald-600 to-emerald-500 text-white shadow-md shadow-emerald-900/20'
+                : 'text-stone-600 hover:text-stone-900 hover:bg-white/60'
             }`}
           >
             <Layers className="w-4 h-4" />
@@ -932,7 +932,7 @@ export const AiInspectorAndEncyclopedia: React.FC<AiInspectorAndEncyclopediaProp
       {/* 1. AI INSPECTOR TAB */}
       {activeSubTab === 'ai_inspector' && (
         <div className="space-y-6">
-          <div className="bg-white border-2 border-stone-200 rounded-3xl p-6 sm:p-8 shadow-xs space-y-6">
+          <div className="glass-strong rounded-[2rem] p-6 sm:p-8 space-y-6">
             <div className="max-w-xl mx-auto text-center space-y-2">
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 text-xs font-bold border border-emerald-200">
                 <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
@@ -958,10 +958,10 @@ export const AiInspectorAndEncyclopedia: React.FC<AiInspectorAndEncyclopediaProp
                       startCamera();
                     }
                   }}
-                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+                  className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all duration-200 cursor-pointer ${
                     inspectMode === 'camera'
-                      ? 'bg-emerald-600 text-white shadow-xs'
-                      : 'bg-stone-100 text-stone-700 hover:bg-stone-200'
+                      ? 'bg-gradient-to-r from-emerald-600 to-emerald-500 text-white shadow-md shadow-emerald-900/20'
+                      : 'bg-white/60 text-stone-700 hover:bg-white/90 border border-stone-200/70'
                   }`}
                 >
                   <Camera className="w-4 h-4" />
@@ -976,10 +976,10 @@ export const AiInspectorAndEncyclopedia: React.FC<AiInspectorAndEncyclopediaProp
                     setInspectError(null);
                     stopCamera();
                   }}
-                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+                  className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all duration-200 cursor-pointer ${
                     inspectMode === 'upload'
-                      ? 'bg-emerald-600 text-white shadow-xs'
-                      : 'bg-stone-100 text-stone-700 hover:bg-stone-200'
+                      ? 'bg-gradient-to-r from-emerald-600 to-emerald-500 text-white shadow-md shadow-emerald-900/20'
+                      : 'bg-white/60 text-stone-700 hover:bg-white/90 border border-stone-200/70'
                   }`}
                 >
                   <Upload className="w-4 h-4" />
@@ -1003,7 +1003,7 @@ export const AiInspectorAndEncyclopedia: React.FC<AiInspectorAndEncyclopediaProp
               <div className="max-w-xl mx-auto space-y-4">
                 {/* When photo is already captured, show review */}
                 {capturedPhotoUrl ? (
-                  <div className="space-y-4 bg-stone-50 border border-stone-200 p-4 sm:p-5 rounded-2xl">
+                  <div className="space-y-4 bg-white/60 backdrop-blur-sm border border-stone-200/60 p-4 sm:p-5 rounded-2xl">
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-bold text-stone-700 flex items-center gap-1.5">
                         <Camera className="w-4 h-4 text-emerald-600" />
@@ -1061,7 +1061,7 @@ export const AiInspectorAndEncyclopedia: React.FC<AiInspectorAndEncyclopediaProp
                         id="btn-inspect-photo"
                         onClick={() => handleInspectImage()}
                         disabled={isInspecting}
-                        className="flex-1 flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold text-sm py-3 rounded-xl transition-all shadow-xs cursor-pointer"
+                        className="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 disabled:opacity-50 text-white font-bold text-sm py-3 rounded-xl transition-all shadow-xs cursor-pointer"
                       >
                         {isInspecting ? (
                           <>
@@ -1272,7 +1272,7 @@ export const AiInspectorAndEncyclopedia: React.FC<AiInspectorAndEncyclopediaProp
                         id="btn-start-camera"
                         onClick={() => startCamera()}
                         disabled={isCameraLoading}
-                        className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm px-6 py-3 rounded-2xl shadow-xs transition-all cursor-pointer"
+                        className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white font-bold text-sm px-6 py-3 rounded-2xl shadow-xs transition-all cursor-pointer"
                       >
                         {isCameraLoading ? (
                           <>
@@ -1347,7 +1347,7 @@ export const AiInspectorAndEncyclopedia: React.FC<AiInspectorAndEncyclopediaProp
             {inspectMode === 'upload' && (
               <div className="max-w-xl mx-auto space-y-4">
                 {capturedPhotoUrl ? (
-                  <div className="space-y-4 bg-stone-50 border border-stone-200 p-4 sm:p-5 rounded-2xl">
+                  <div className="space-y-4 bg-white/60 backdrop-blur-sm border border-stone-200/60 p-4 sm:p-5 rounded-2xl">
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-bold text-stone-700 flex items-center gap-1.5">
                         <ImageIcon className="w-4 h-4 text-emerald-600" />
@@ -1407,7 +1407,7 @@ export const AiInspectorAndEncyclopedia: React.FC<AiInspectorAndEncyclopediaProp
                       <button
                         onClick={() => handleInspectImage()}
                         disabled={isInspecting}
-                        className="flex-1 flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold text-sm py-3 rounded-xl transition-all shadow-xs cursor-pointer"
+                        className="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 disabled:opacity-50 text-white font-bold text-sm py-3 rounded-xl transition-all shadow-xs cursor-pointer"
                       >
                         {isInspecting ? (
                           <>
@@ -1447,7 +1447,7 @@ export const AiInspectorAndEncyclopedia: React.FC<AiInspectorAndEncyclopediaProp
                     </div>
                     <button
                       type="button"
-                      className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-4 py-2 rounded-xl transition-all shadow-xs pointer-events-none"
+                      className="inline-flex items-center gap-2 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white font-bold text-xs px-4 py-2 rounded-xl transition-all shadow-xs pointer-events-none"
                     >
                       Browse Files
                     </button>
@@ -1484,7 +1484,7 @@ export const AiInspectorAndEncyclopedia: React.FC<AiInspectorAndEncyclopediaProp
             <motion.div
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
-              className="bg-white border-2 border-emerald-500/60 rounded-3xl p-6 sm:p-8 shadow-xs space-y-5"
+              className="bg-gradient-to-br from-emerald-50/80 via-white to-stone-50 border border-emerald-300/60 rounded-3xl p-6 sm:p-8 shadow-lg shadow-emerald-900/5 space-y-5 animate-scale-in"
             >
               {/* Visual Analysis & Designated Waste Stream Hero Banner */}
               <div className="space-y-4 border-b border-stone-200 pb-5">
@@ -1803,7 +1803,7 @@ export const AiInspectorAndEncyclopedia: React.FC<AiInspectorAndEncyclopediaProp
                 <button
                   type="button"
                   onClick={retakePhoto}
-                  className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-xs transition-colors cursor-pointer"
+                  className="flex items-center gap-2 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-xs transition-colors cursor-pointer"
                 >
                   <Camera className="w-3.5 h-3.5" />
                   <span>Scan Another Item with Camera</span>
@@ -1818,7 +1818,7 @@ export const AiInspectorAndEncyclopedia: React.FC<AiInspectorAndEncyclopediaProp
       {activeSubTab === 'catalog' && (
         <div className="space-y-6">
           {/* Catalog Status & Summary */}
-          <div className="bg-white p-4 sm:p-5 rounded-2xl border border-stone-200 shadow-2xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div className="glass rounded-2xl p-4 sm:p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div className="space-y-1">
               <div className="flex items-center gap-2">
                 <h3 className="text-sm sm:text-base font-extrabold text-stone-900">
@@ -1846,7 +1846,7 @@ export const AiInspectorAndEncyclopedia: React.FC<AiInspectorAndEncyclopediaProp
           </div>
 
           {/* Search & Filter Bar */}
-          <div className="bg-white p-5 rounded-2xl border border-stone-200 shadow-2xs space-y-4">
+          <div className="glass rounded-2xl p-5 space-y-4">
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
               <div className="relative flex-1">
                 <input
@@ -1892,8 +1892,8 @@ export const AiInspectorAndEncyclopedia: React.FC<AiInspectorAndEncyclopediaProp
                     onClick={() => setCategoryFilter(cat)}
                     className={`px-3 py-1.5 rounded-lg text-xs font-semibold capitalize whitespace-nowrap cursor-pointer transition-all ${
                       categoryFilter === cat
-                        ? 'bg-stone-900 text-white'
-                        : 'bg-stone-100 text-stone-600 hover:text-stone-900'
+                        ? 'bg-gradient-to-r from-emerald-600 to-emerald-500 text-white shadow-sm'
+                        : 'bg-white/50 text-stone-600 hover:text-stone-900 hover:bg-white/80'
                     }`}
                   >
                     {cat.replace('_', ' ')}
@@ -1905,7 +1905,7 @@ export const AiInspectorAndEncyclopedia: React.FC<AiInspectorAndEncyclopediaProp
 
           {/* Empty State when no items match search */}
           {filteredCatalog.length === 0 && (
-            <div className="bg-white p-8 rounded-3xl border border-stone-200 text-center space-y-3 shadow-2xs">
+            <div className="glass rounded-3xl p-8 text-center space-y-3">
               <div className="w-12 h-12 rounded-full bg-stone-100 text-stone-500 mx-auto flex items-center justify-center">
                 <Search className="w-6 h-6" />
               </div>
@@ -1924,7 +1924,7 @@ export const AiInspectorAndEncyclopedia: React.FC<AiInspectorAndEncyclopediaProp
               <div
                 key={item.id}
                 onClick={() => setSelectedCatalogItem(item)}
-                className="bg-white p-4 rounded-2xl border border-stone-200 hover:border-emerald-500 transition-all cursor-pointer shadow-2xs hover:shadow-xs flex flex-col justify-between"
+                className="glass glass-hover rounded-2xl p-4 hover:border-emerald-400/60 cursor-pointer flex flex-col justify-between"
               >
                 <div>
                   <div className="flex items-start gap-3">
@@ -2145,7 +2145,7 @@ export const AiInspectorAndEncyclopedia: React.FC<AiInspectorAndEncyclopediaProp
       {/* 3. RESIN CODES GUIDE TAB */}
       {activeSubTab === 'resin_codes' && (
         <div className="space-y-6">
-          <div className="bg-white p-6 rounded-3xl border border-stone-200 shadow-2xs space-y-2">
+          <div className="glass-strong rounded-3xl p-6 space-y-2">
             <h3 className="text-xl font-extrabold text-stone-900">
               Plastics Resin Identification Code (RIC) Guide
             </h3>
@@ -2158,7 +2158,7 @@ export const AiInspectorAndEncyclopedia: React.FC<AiInspectorAndEncyclopediaProp
             {RESIN_CODES.map(resin => (
               <div
                 key={resin.code}
-                className="bg-white p-5 rounded-2xl border-2 border-stone-200 shadow-2xs space-y-3"
+                className="glass glass-hover rounded-2xl p-5 space-y-3"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-2.5">
