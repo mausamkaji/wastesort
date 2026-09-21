@@ -10,20 +10,17 @@ interface NavbarProps {
 }
 
 export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
-  const { stats, currentCombo, soundEnabled, toggleSound, activeLevelInfo, dailyTasks } = useGame();
-
-  const completedDailyCount = dailyTasks.filter(t => t.completed).length;
+  const { stats, currentCombo, soundEnabled, toggleSound, activeLevelInfo } = useGame();
 
   // Calculate progress to next level
   const xpCurrentLevel = stats.xp - activeLevelInfo.minXp;
   const xpSpan = activeLevelInfo.maxXp - activeLevelInfo.minXp;
   const progressPercent = activeLevelInfo.level >= 7 ? 100 : Math.min(100, Math.max(0, Math.round((xpCurrentLevel / xpSpan) * 100)));
 
+  // Bin Master, Detective, and Trivia live under "3 Interactive Games" on the homepage now,
+  // not as their own nav tabs — keeps the bar to the two primary destinations.
   const navItems = [
     { id: 'home' as ActiveTab, label: 'Home & Guide', icon: '🏠', badge: 'Start' },
-    { id: 'bin_master' as ActiveTab, label: 'Bin Master', icon: '🎯', badge: `${completedDailyCount}/3 Daily` },
-    { id: 'contamination_detective' as ActiveTab, label: 'Detective', icon: '🕵️', badge: 'Puzzle' },
-    { id: 'trivia' as ActiveTab, label: 'Trivia', icon: '🧠', badge: 'Quiz' },
     { id: 'ai_inspector' as ActiveTab, label: 'AI Inspector', icon: '🤖', badge: 'Smart' },
   ];
 

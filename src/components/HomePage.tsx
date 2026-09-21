@@ -526,6 +526,11 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
   const [isInputFocused, setIsInputFocused] = useState(false);
   const searchContainerRef = React.useRef<HTMLDivElement>(null);
   const searchInputRef = React.useRef<HTMLInputElement>(null);
+  const gamesRef = React.useRef<HTMLDivElement>(null);
+
+  const scrollToGames = () => {
+    gamesRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
 
   // AI-Powered Search & Google Verification State
   const { allItems, saveValidatedSearch } = useEncyclopediaStore();
@@ -697,18 +702,23 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
           {/* Quick value-prop stat strip */}
           <div className="flex flex-wrap items-center gap-2 sm:gap-3 animate-fade-in-up">
             {[
-              { label: '9 Waste Streams', icon: '♻️' },
-              { label: '3 Interactive Games', icon: '🎮' },
-              { label: 'AI-Powered Verification', icon: '✨' },
-            ].map(stat => (
-              <span
-                key={stat.label}
-                className="inline-flex items-center gap-1.5 bg-white/10 hover:bg-white/15 backdrop-blur-sm border border-white/15 px-3 py-1 rounded-full text-[11px] sm:text-xs font-bold text-emerald-50 transition-colors"
-              >
-                <span>{stat.icon}</span>
-                {stat.label}
-              </span>
-            ))}
+              { label: '9 Waste Streams', icon: '♻️', onClick: undefined },
+              { label: '3 Interactive Games', icon: '🎮', onClick: scrollToGames },
+              { label: 'AI-Powered Verification', icon: '✨', onClick: undefined },
+            ].map(stat => {
+              const className = "inline-flex items-center gap-1.5 bg-white/10 hover:bg-white/15 backdrop-blur-sm border border-white/15 px-3 py-1 rounded-full text-[11px] sm:text-xs font-bold text-emerald-50 transition-colors";
+              return stat.onClick ? (
+                <button key={stat.label} type="button" onClick={stat.onClick} className={`${className} cursor-pointer`}>
+                  <span>{stat.icon}</span>
+                  {stat.label}
+                </button>
+              ) : (
+                <span key={stat.label} className={className}>
+                  <span>{stat.icon}</span>
+                  {stat.label}
+                </span>
+              );
+            })}
           </div>
 
           <p className="text-stone-200/90 text-sm sm:text-base leading-relaxed max-w-2xl font-normal">
@@ -1799,13 +1809,13 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
         </div>
       </section>
 
-      {/* Interactive Challenge Modes Cards / Hub */}
-      <section className="space-y-6">
+      {/* 3 Interactive Games Hub */}
+      <section ref={gamesRef} className="space-y-6 scroll-mt-24 sm:scroll-mt-28">
         <div>
           <div className="flex items-center gap-2">
             <span className="p-1.5 bg-emerald-100 text-emerald-800 rounded-lg text-lg">🎮</span>
             <h2 className="text-2xl sm:text-3xl font-black text-stone-900 tracking-tight">
-              Test & Upgrade Your Recycling Skills
+              3 Interactive Games
             </h2>
           </div>
           <p className="text-xs sm:text-sm text-stone-500 mt-1">
@@ -1813,7 +1823,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Bin Master Card */}
           <div className="glass glass-hover rounded-3xl p-6 hover:border-emerald-400/60 flex flex-col justify-between space-y-4 group">
             <div className="space-y-3">
@@ -1834,22 +1844,42 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
             </button>
           </div>
 
-          {/* AI Inspector Card */}
-          <div className="glass glass-hover rounded-3xl p-6 hover:border-indigo-400/60 flex flex-col justify-between space-y-4 group">
+          {/* Contamination Detective Card */}
+          <div className="glass glass-hover rounded-3xl p-6 hover:border-amber-400/60 flex flex-col justify-between space-y-4 group">
             <div className="space-y-3">
-              <span className="text-4xl p-3 bg-indigo-50 rounded-2xl inline-block border border-indigo-200/80">🤖</span>
-              <h3 className="font-black text-lg text-stone-900 group-hover:text-indigo-700 transition-colors">
-                AI Inspector & Guide
+              <span className="text-4xl p-3 bg-amber-50 rounded-2xl inline-block border border-amber-200/80">🕵️</span>
+              <h3 className="font-black text-lg text-stone-900 group-hover:text-amber-700 transition-colors">
+                Contamination Detective
               </h3>
               <p className="text-xs text-stone-600 leading-relaxed font-normal">
-                Ask Gemini AI about any rare or complex household item, upload photos for visual analysis, and check plastic resin codes #1 through #7.
+                Spot the batch-spoiling contaminants hiding in each waste stream before they jam machinery or ruin a whole load.
               </p>
             </div>
             <button
-              onClick={() => onNavigate('ai_inspector')}
+              onClick={() => onNavigate('contamination_detective')}
+              className="w-full inline-flex items-center justify-center gap-2 bg-amber-600 hover:bg-amber-700 text-white font-extrabold text-xs py-3 rounded-xl transition-all cursor-pointer shadow-xs"
+            >
+              <span>Play Game</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+
+          {/* Trivia Card */}
+          <div className="glass glass-hover rounded-3xl p-6 hover:border-indigo-400/60 flex flex-col justify-between space-y-4 group">
+            <div className="space-y-3">
+              <span className="text-4xl p-3 bg-indigo-50 rounded-2xl inline-block border border-indigo-200/80">🧠</span>
+              <h3 className="font-black text-lg text-stone-900 group-hover:text-indigo-700 transition-colors">
+                Recycle IQ Trivia
+              </h3>
+              <p className="text-xs text-stone-600 leading-relaxed font-normal">
+                Test your knowledge against common recycling myths and mistakes, with a real explanation behind every answer.
+              </p>
+            </div>
+            <button
+              onClick={() => onNavigate('trivia')}
               className="w-full inline-flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs py-3 rounded-xl transition-all cursor-pointer shadow-xs"
             >
-              <span>Launch AI Inspector</span>
+              <span>Play Game</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
