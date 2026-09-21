@@ -877,26 +877,6 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
               ))}
             </div>
           </div>
-
-          {/* Quick Action Navigation CTAs */}
-          <div className="pt-4 flex flex-wrap items-center gap-3">
-            <button
-              id="cta-bin-master"
-              onClick={() => onNavigate('bin_master')}
-              className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-400 to-amber-300 hover:from-amber-300 hover:to-amber-200 text-stone-950 font-black text-xs sm:text-sm px-5 py-3 rounded-2xl shadow-lg shadow-amber-500/20 transition-all cursor-pointer transform hover:-translate-y-0.5 hover:shadow-amber-400/40"
-            >
-              <span>Play Bin Master</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
-            <button
-              id="cta-ai-inspector"
-              onClick={() => onNavigate('ai_inspector')}
-              className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white font-bold text-xs sm:text-sm px-5 py-3 rounded-2xl border border-white/20 backdrop-blur-xs transition-all cursor-pointer transform hover:-translate-y-0.5"
-            >
-              <span>AI Waste Inspector</span>
-              <Sparkles className="w-4 h-4 text-emerald-300" />
-            </button>
-          </div>
         </div>
 
         {/* Subtle Background Decorative Graphic */}
