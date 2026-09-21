@@ -54,8 +54,8 @@ export const AiInspectorAndEncyclopedia: React.FC<AiInspectorAndEncyclopediaProp
     }
   };
 
-  // AI Inspector Mode: 'camera' (live webcam/phone camera) | 'upload' (photo file) | 'text' (search query)
-  const [inspectMode, setInspectMode] = useState<'camera' | 'upload' | 'text'>('camera');
+  // AI Inspector Mode: 'camera' (live webcam/phone camera) | 'upload' (photo file)
+  const [inspectMode, setInspectMode] = useState<'camera' | 'upload'>('camera');
 
   // Camera & Photo State
   const [isCameraActive, setIsCameraActive] = useState(false);
@@ -74,34 +74,10 @@ export const AiInspectorAndEncyclopedia: React.FC<AiInspectorAndEncyclopediaProp
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Text AI Inspector State
-  const [inputQuery, setInputQuery] = useState('');
-  const [materialHint, setMaterialHint] = useState('');
+  // AI Inspector Result State
   const [isInspecting, setIsInspecting] = useState(false);
   const [inspectionResult, setInspectionResult] = useState<InspectionResult | null>(null);
   const [inspectError, setInspectError] = useState<string | null>(null);
-
-  // Mobile Keyboard & Focus Optimization State
-  const [isWasteInputFocused, setIsWasteInputFocused] = useState(false);
-  const textSearchContainerRef = React.useRef<HTMLDivElement>(null);
-  const wasteInputRef = React.useRef<HTMLInputElement>(null);
-
-  const handleWasteInputFocus = () => {
-    setIsWasteInputFocused(true);
-    setTimeout(() => {
-      if (textSearchContainerRef.current) {
-        const yOffset = -75;
-        const y = textSearchContainerRef.current.getBoundingClientRect().top + window.pageYOffset + yOffset;
-        window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
-      }
-    }, 180);
-  };
-
-  const handleWasteInputBlur = () => {
-    setTimeout(() => {
-      setIsWasteInputFocused(false);
-    }, 250);
-  };
 
   // Stop camera on unmount
   useEffect(() => {
@@ -522,39 +498,6 @@ export const AiInspectorAndEncyclopedia: React.FC<AiInspectorAndEncyclopediaProp
     }
   };
 
-  const handleInspectSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!inputQuery.trim()) return;
-
-    setIsInspecting(true);
-    setInspectError(null);
-
-    try {
-      const res = await fetch('/api/inspect-waste', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          itemName: inputQuery.trim(),
-          materialHint: materialHint.trim() || undefined,
-        }),
-      });
-
-      if (!res.ok) throw new Error('Inspection request failed');
-      const data: InspectionResult = await res.json();
-      setInspectionResult(data);
-      recordAiInspection();
-    } catch {
-      setInspectError('Unable to analyze item. Please check your connection and try again.');
-    } finally {
-      setIsInspecting(false);
-    }
-  };
-
-  const handleSelectQuickExample = (name: string, hint?: string) => {
-    setInputQuery(name);
-    if (hint) setMaterialHint(hint);
-  };
-
   const filteredCatalog = allItems.filter(item => {
     const q = catalogSearch.toLowerCase().trim();
     const matchesCat = categoryFilter === 'all' ||
@@ -962,10 +905,10 @@ export const AiInspectorAndEncyclopedia: React.FC<AiInspectorAndEncyclopediaProp
                 <span>Powered by Gemini 2.5 & Google Search Grounding</span>
               </div>
               <h2 className="text-2xl sm:text-3xl font-black text-stone-900 tracking-tight">
-                Scan or Ask WasteSort AI About Rubbish
+                Scan WasteSort AI About Rubbish
               </h2>
               <p className="text-xs sm:text-sm text-stone-600 font-medium">
-                Click a photo with your camera or search any item. We verify against local municipal council standards and commercial processing facilities.
+                Click a photo with your camera or upload one. We verify against local municipal council standards and commercial processing facilities.
               </p>
 
               {/* Mode Selector */}
@@ -1007,24 +950,6 @@ export const AiInspectorAndEncyclopedia: React.FC<AiInspectorAndEncyclopediaProp
                 >
                   <Upload className="w-4 h-4" />
                   <span>Upload Photo</span>
-                </button>
-                <button
-                  id="mode-text-btn"
-                  type="button"
-                  onClick={() => {
-                    setInspectMode('text');
-                    setCameraError(null);
-                    setInspectError(null);
-                    stopCamera();
-                  }}
-                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
-                    inspectMode === 'text'
-                      ? 'bg-emerald-600 text-white shadow-xs'
-                      : 'bg-stone-100 text-stone-700 hover:bg-stone-200'
-                  }`}
-                >
-                  <Search className="w-4 h-4" />
-                  <span>Type / Search</span>
                 </button>
               </div>
             </div>
@@ -1497,125 +1422,6 @@ export const AiInspectorAndEncyclopedia: React.FC<AiInspectorAndEncyclopediaProp
               </div>
             )}
 
-            {/* 1C. TEXT SEARCH MODE */}
-            {inspectMode === 'text' && (
-              <form
-                ref={textSearchContainerRef}
-                onSubmit={handleInspectSubmit}
-                className="max-w-xl mx-auto space-y-3 scroll-mt-24 sm:scroll-mt-32"
-              >
-                <div className="relative">
-                  <input
-                    ref={wasteInputRef}
-                    type="text"
-                    id="input-waste-item"
-                    value={inputQuery}
-                    onChange={e => setInputQuery(e.target.value)}
-                    onFocus={handleWasteInputFocus}
-                    onBlur={handleWasteInputBlur}
-                    enterKeyHint="search"
-                    autoComplete="off"
-                    autoCorrect="off"
-                    spellCheck={false}
-                    placeholder="e.g., Raw meat scrap, shampoo pump dispenser, aerosol can, lithium battery..."
-                    className="w-full px-4 py-3.5 pl-11 pr-11 rounded-2xl border-2 border-stone-300 focus:border-emerald-600 focus:outline-hidden text-base sm:text-sm bg-stone-50 font-medium transition-colors"
-                  />
-                  <Search className="w-5 h-5 text-stone-400 absolute left-3.5 top-3.5 pointer-events-none" />
-                  {inputQuery && (
-                    <button
-                      type="button"
-                      onMouseDown={(e) => {
-                        e.preventDefault();
-                        setInputQuery('');
-                        wasteInputRef.current?.focus();
-                      }}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center text-xs font-bold text-stone-400 hover:text-stone-700 bg-stone-200 hover:bg-stone-300 rounded-full transition-colors cursor-pointer"
-                      title="Clear text"
-                      aria-label="Clear input text"
-                    >
-                      ✕
-                    </button>
-                  )}
-                </div>
-
-                {/* Mobile Live Typing Indicator - ensures user knows what they're typing above the keyboard */}
-                {isWasteInputFocused && inputQuery.trim() && (
-                  <div className="sm:hidden flex items-center justify-between bg-stone-900/95 backdrop-blur-md text-white text-xs px-3 py-2 rounded-xl border border-emerald-500/50 shadow-xl animate-in fade-in slide-in-from-top-1 duration-150">
-                    <div className="flex items-center gap-1.5 min-w-0 overflow-hidden">
-                      <span className="text-emerald-400 font-bold shrink-0">Typing:</span>
-                      <span className="font-semibold truncate text-white max-w-[200px]">&ldquo;{inputQuery}&rdquo;</span>
-                    </div>
-                    <button
-                      type="button"
-                      onMouseDown={(e) => {
-                        e.preventDefault();
-                        handleInspectSubmit(e as any);
-                      }}
-                      className="text-[11px] font-bold text-emerald-300 bg-emerald-950 px-2 py-0.5 rounded-md border border-emerald-500/40 shrink-0 ml-2 active:scale-95 cursor-pointer"
-                    >
-                      Inspect ↵
-                    </button>
-                  </div>
-                )}
-
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    id="input-material-hint"
-                    value={materialHint}
-                    onChange={e => setMaterialHint(e.target.value)}
-                    enterKeyHint="done"
-                    placeholder="Optional material note (e.g., greasy cardboard, rigid plastic, has metal spring)"
-                    className="flex-1 px-4 py-2 rounded-xl border border-stone-200 text-base sm:text-xs bg-white text-stone-700 focus:border-emerald-600 focus:outline-hidden"
-                  />
-                  <button
-                    type="submit"
-                    id="btn-inspect-submit"
-                    disabled={isInspecting || !inputQuery.trim()}
-                    className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold text-xs sm:text-sm px-6 py-2 rounded-xl transition-all shadow-xs cursor-pointer whitespace-nowrap"
-                  >
-                    {isInspecting ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        <span>Analyzing...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles className="w-4 h-4" />
-                        <span>Inspect Item</span>
-                      </>
-                    )}
-                  </button>
-                </div>
-
-                {/* Quick Prompt Ideas */}
-                <div className="pt-2 text-left">
-                  <span className="text-[11px] font-bold text-stone-500 uppercase tracking-wider block mb-1.5">
-                    Try tricky examples:
-                  </span>
-                  <div className="flex flex-wrap gap-1.5">
-                    {[
-                      'Clean and unused pizza box',
-                      'Greasy pizza box with cheese',
-                      'Styrofoam meat tray',
-                      'Mussel and oyster shells',
-                      'Raw meat & chicken bones',
-                      'Plastic shampoo bottle with pump',
-                      'Lithium battery pack',
-                    ].map((example, i) => (
-                      <button
-                        key={i}
-                        type="button"
-                        onClick={() => handleSelectQuickExample(example)}
-                        className="text-[11px] font-semibold text-stone-700 bg-stone-100 hover:bg-stone-200 px-2.5 py-1 rounded-lg transition-colors cursor-pointer"
-                      >
-                        {example}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </form>
-            )}
 
             {/* Error messaging */}
             {(inspectError || (inspectMode !== 'camera' && cameraError)) && (
