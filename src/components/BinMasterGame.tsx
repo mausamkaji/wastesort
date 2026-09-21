@@ -935,7 +935,7 @@ export const BinMasterGame: React.FC = () => {
               {currentItem.name}
             </h3>
 
-            {/* Assistance Row: Material Hint & AI Referee */}
+            {/* Assistance Row: Material Hint, Next & AI Referee */}
             <div className="max-w-md mx-auto mb-6 flex flex-wrap items-center justify-center gap-2">
               {!showHint ? (
                 <button
@@ -946,7 +946,21 @@ export const BinMasterGame: React.FC = () => {
                   <HelpCircle className="w-3.5 h-3.5 text-stone-500" />
                   <span>Need a hint?</span>
                 </button>
-              ) : (
+              ) : null}
+
+              {!lastResult && (
+                <button
+                  id="btn-skip-top"
+                  onClick={handleNextItem}
+                  className="inline-flex items-center gap-1.5 text-xs font-semibold text-stone-600 hover:text-stone-900 bg-stone-100 hover:bg-stone-200/80 px-3 py-1.5 rounded-full transition-colors cursor-pointer"
+                  title="Skip this item and move to the next one"
+                >
+                  <span>Next</span>
+                  <ArrowRight className="w-3.5 h-3.5 text-stone-500" />
+                </button>
+              )}
+
+              {showHint && (
                 <div className="w-full bg-amber-50 border border-amber-200 text-amber-900 text-xs rounded-2xl p-3 text-left">
                   <span className="font-bold">Material Clue: </span>
                   {currentItem.category.replace('_', ' ').toUpperCase()} • {currentItem.tags.join(', ')}.
