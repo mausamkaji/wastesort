@@ -625,7 +625,15 @@ function postProcessInspectionResult(
       lower.includes("fabric") ||
       lower.includes("garment") ||
       lower.includes("blanket") ||
-      lower.includes("curtain")
+      lower.includes("curtain") ||
+      lower.includes("backpack") ||
+      lower.includes("rucksack") ||
+      lower.includes("duffel") ||
+      lower.includes("tote bag") ||
+      lower.includes("gym bag") ||
+      lower.includes("handbag") ||
+      lower.includes("purse") ||
+      (lower.includes("belt") && !lower.includes("conveyor") && !lower.includes("seatbelt") && !lower.includes("seat belt"))
     );
 
   if (isBatteryOrElectronic) {
@@ -1854,7 +1862,15 @@ function getFallbackEncyclopediaValidation(
       lower.includes("fabric") ||
       lower.includes("garment") ||
       lower.includes("blanket") ||
-      lower.includes("curtain")
+      lower.includes("curtain") ||
+      lower.includes("backpack") ||
+      lower.includes("rucksack") ||
+      lower.includes("duffel") ||
+      lower.includes("tote bag") ||
+      lower.includes("gym bag") ||
+      lower.includes("handbag") ||
+      lower.includes("purse") ||
+      (lower.includes("belt") && !lower.includes("conveyor") && !lower.includes("seatbelt") && !lower.includes("seat belt"))
     );
 
   const isMusselOrHardShell =
@@ -2311,7 +2327,15 @@ function normalizeItemBin(rawBin: string, category?: string, name?: string): 'ge
     n.includes('bed sheet') ||
     (n.includes('towel') && !n.includes('paper towel') && !n.includes('papertowel')) ||
     n.includes('linen') ||
-    n.includes('fabric scrap')
+    n.includes('fabric scrap') ||
+    n.includes('backpack') ||
+    n.includes('rucksack') ||
+    n.includes('duffel') ||
+    n.includes('tote bag') ||
+    n.includes('gym bag') ||
+    n.includes('handbag') ||
+    n.includes('purse') ||
+    (n.includes('belt') && !n.includes('conveyor') && !n.includes('seatbelt') && !n.includes('seat belt'))
   ) {
     return 'cloth_recycling';
   }
@@ -3050,7 +3074,15 @@ function getFallbackInspection(item: string) {
     lower.includes("sneaker") ||
     lower.includes("bedsheet") ||
     lower.includes("towel") ||
-    lower.includes("textile")
+    lower.includes("textile") ||
+    lower.includes("backpack") ||
+    lower.includes("rucksack") ||
+    lower.includes("duffel") ||
+    lower.includes("tote bag") ||
+    lower.includes("gym bag") ||
+    lower.includes("handbag") ||
+    lower.includes("purse") ||
+    (lower.includes("belt") && !lower.includes("conveyor") && !lower.includes("seatbelt") && !lower.includes("seat belt"))
   ) {
     baseResult = {
       itemName: item,
