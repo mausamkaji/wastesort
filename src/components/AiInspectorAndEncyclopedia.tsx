@@ -1480,7 +1480,44 @@ export const AiInspectorAndEncyclopedia: React.FC<AiInspectorAndEncyclopediaProp
           </div>
 
           {/* Inspection Result Card with Multi-Stream Display */}
-          {inspectionResult && (
+          {inspectionResult && inspectionResult.isUnclear && (
+            <motion.div
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-gradient-to-br from-amber-50/80 via-white to-stone-50 border border-amber-300/60 rounded-3xl p-6 sm:p-8 shadow-lg shadow-amber-900/5 space-y-4 animate-scale-in text-center"
+            >
+              <div className="w-14 h-14 mx-auto rounded-2xl bg-amber-100 border border-amber-300 flex items-center justify-center text-3xl">
+                🤔
+              </div>
+              <h3 className="text-xl sm:text-2xl font-black text-stone-900 tracking-tight">
+                Couldn&apos;t Identify a Clear Item
+              </h3>
+              <p className="text-sm text-stone-600 max-w-md mx-auto leading-relaxed">
+                {inspectionResult.unclearReason || "We couldn't clearly identify a waste item in this photo."}
+              </p>
+              <p className="text-xs text-stone-500 max-w-md mx-auto">
+                Try again with the item well-lit, in focus, and filling most of the frame.
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  setInspectionResult(null);
+                  if (inspectMode === 'camera') {
+                    retakePhoto();
+                  } else {
+                    setCapturedPhotoUrl(null);
+                    setUploadedFileName(null);
+                  }
+                }}
+                className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-500 to-amber-400 hover:from-amber-400 hover:to-amber-300 text-stone-950 font-bold text-sm px-5 py-2.5 rounded-xl transition-all cursor-pointer shadow-md shadow-amber-900/20"
+              >
+                <Camera className="w-4 h-4" />
+                <span>Retake Photo</span>
+              </button>
+            </motion.div>
+          )}
+
+          {inspectionResult && !inspectionResult.isUnclear && (
             <motion.div
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}

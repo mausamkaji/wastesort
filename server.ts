@@ -1564,7 +1564,7 @@ function detectItemFromImageOrMetadata(
   sampleType?: string,
   visualHint?: string,
   detectedCategory?: string
-): string {
+): string | null {
   // 1. Explicit sampleType
   if (sampleType === "plastic_bottle") return "Rigid Plastic Drink Bottle";
   if (sampleType === "chicken_bones") return "Roast Chicken Bones & Meat Scraps";
@@ -1622,37 +1622,27 @@ function detectItemFromImageOrMetadata(
   if (detectedCategory === "cloth_recycling") return "Clothing & Textile Garment";
   if (detectedCategory === "general_waste") return "Takeaway Paper Coffee Cup";
 
-  // 5. Intelligent base64 byte sampling heuristic
-  if (cleanBase64 && cleanBase64.length > 500) {
-    try {
-      const sample = Buffer.from(cleanBase64.slice(100, 1100), "base64");
-      let greenScore = 0;
-      let warmScore = 0;
-      let neutralScore = 0;
-      for (let i = 0; i < sample.length - 2; i += 3) {
-        const r = sample[i];
-        const g = sample[i + 1];
-        const b = sample[i + 2];
-        if (g > r * 1.15 && g > b * 1.15) greenScore++;
-        else if (r > 120 && g > 70 && b < 70) warmScore++;
-        else if (Math.abs(r - g) < 20 && Math.abs(g - b) < 20) neutralScore++;
-      }
-      if (greenScore > warmScore && greenScore > neutralScore) {
-        return "Food Scraps & Fruit Peels";
-      }
-      if (warmScore > greenScore && warmScore > neutralScore) {
-        return "Cardboard Shipping Box";
-      }
-      if (neutralScore > greenScore && neutralScore > warmScore) {
-        return "Aluminum Drink Can";
-      }
-    } catch {
-      // Ignore byte sampling errors and continue
-    }
-  }
+  // No reliable, user-provided signal about what's actually in the photo. Deliberately
+  // do NOT guess here: raw image bytes (compressed PNG/JPEG data) carry no usable per-pixel
+  // color information, so any guess at this point would be fabricated, not detected. Callers
+  // must treat a null return as "AI analysis unavailable" and say so honestly, not substitute
+  // a fake confident item.
+  return null;
+}
 
-  // 6. Default commingled recyclable container
-  return "Rigid Plastic Drink Bottle";
+// Honest "we don't actually know" response for the image inspector — used whenever we have
+// no real vision analysis (no AI configured, the AI call failed, or its response didn't parse)
+// and no reliable user-provided hint to fall back on, instead of fabricating a guessed item.
+function buildUnclearPhotoResult(reason: string) {
+  return {
+    isUnclear: true,
+    unclearReason: reason,
+    itemName: "Unclear Photo",
+    primaryBin: "general_waste",
+    binColorName: "",
+    prepInstructions: [],
+    whyItGoesHere: "",
+  };
 }
 
 // AI Camera & Photo Waste Inspector endpoint (Multimodal Gemini Vision + Google Search Grounding)
@@ -1686,6 +1676,11 @@ app.post("/api/inspect-image", async (req, res) => {
 
     const ai = getGenAI();
     if (!ai && !hasNvidiaKey()) {
+      if (!detectedFallbackItem) {
+        return res.json(buildUnclearPhotoResult(
+          "No AI photo analysis is currently configured, and there's no other hint to go on — please describe the item in the notes field, or type its name in the search bar instead."
+        ));
+      }
       const fallback = getFallbackInspection(detectedFallbackItem);
       const encyclopediaItem = convertInspectionToWasteItem(fallback, detectedFallbackItem);
       upsertUserSearchedItem(encyclopediaItem);
@@ -1694,7 +1689,11 @@ app.post("/api/inspect-image", async (req, res) => {
 
     const visionPrompt = `Examine this photo of a household rubbish / waste item carefully.
 Identify the exact object and provide its ACCURATE municipal bin classification.
-CRITICAL INSTRUCTION: Do NOT default to general waste (Red Lid Bin). Check if the item belongs to recycling, organics, paper, e-waste, textiles, or meat bins first:
+
+FIRST CHECK: Does this photo actually show a physical piece of household waste, recycling, or rubbish clearly enough to identify?
+If the photo is too dark, blurry, out of focus, or shows something that is NOT an identifiable waste item (e.g. a screen/monitor/laptop, a document, a person, an empty room, a wall, or anything unrelated to rubbish disposal), you MUST NOT guess or invent a plausible-sounding item. Instead set "isUnclear": true, leave "itemName" as "Unclear Photo", and explain briefly in "unclearReason" what you actually see and why it can't be classified (e.g. "The photo appears to show a laptop/computer screen, not a physical waste item."). Only set "isUnclear": false when you can clearly see a real, physical object in the frame.
+
+CRITICAL INSTRUCTION (only applies when isUnclear is false): Do NOT default to general waste (Red Lid Bin). Check if the item belongs to recycling, organics, paper, e-waste, textiles, or meat bins first:
 - Rigid bottles, containers, drink cans, food cans, glass jars -> "commingled_recycling" (Yellow Lid Bin)
 - Clean paper, dry cardboard boxes, non-greasy pizza boxes -> "paper_cardboard" (Blue Lid Bin)
 - Food scraps, vegetable peels, fruit, garden waste -> "organic" (Green Lid Bin)
@@ -1710,7 +1709,9 @@ File name: "${fileName || 'None'}"
 
 Return ONLY a valid JSON object with this schema:
 {
-  "itemName": "Specific identified waste item name (e.g., 'Plastic Water Bottle', 'Aluminum Soda Can', 'Cardboard Box', 'Roast Chicken Bones', 'Apple Core', 'Takeaway Coffee Cup')",
+  "isUnclear": true | false,
+  "unclearReason": "string — only when isUnclear is true, briefly explain what the photo actually shows",
+  "itemName": "Specific identified waste item name (e.g., 'Plastic Water Bottle', 'Aluminum Soda Can', 'Cardboard Box', 'Roast Chicken Bones', 'Apple Core', 'Takeaway Coffee Cup'), or 'Unclear Photo' when isUnclear is true",
   "itemEmoji": "exactly one emoji character that best visually represents the identified item — never a generic box unless truly nothing else fits",
   "detectedMaterials": ["Material 1", "Material 2"],
   "primaryBin": "general_waste" | "commingled_recycling" | "organic" | "meat_bones" | "paper_cardboard" | "cloth_recycling" | "e_waste" | "hard_rubbish" | "medical_waste",
@@ -1754,7 +1755,7 @@ Return ONLY a valid JSON object with this schema:
         config: {
           responseMimeType: "application/json",
           systemInstruction:
-            "You are WasteSort Vision AI, an expert computer vision model trained on municipal materials recovery facilities (MRFs), commercial compost systems, bio-rendering, e-waste dismantling, and medical waste protocol. Look closely at the actual photo provided and identify the specific, real object(s) visible in it — do not answer with a generic example item unrelated to what is shown. Provide precise disposal instructions according to the 7-bin standard, highlighting multi-stream acceptance where appropriate. Never default to red general waste if the item is recyclable or organic. Respond with exactly ONE JSON object describing the single primary item in the photo — never a JSON array, never multiple items, never markdown code fences, never any text before or after the JSON.",
+            "You are WasteSort Vision AI, an expert computer vision model trained on municipal materials recovery facilities (MRFs), commercial compost systems, bio-rendering, e-waste dismantling, and medical waste protocol. Look closely at the actual photo provided and identify the specific, real object(s) visible in it — do not answer with a generic example item unrelated to what is shown. If the photo is too dark, blurry, or does not clearly show a physical waste item (for example a screen, document, person, or empty room), you must say so via isUnclear/unclearReason rather than inventing a plausible-sounding item — a wrong confident guess is far worse than admitting the photo is unclear. Provide precise disposal instructions according to the 7-bin standard, highlighting multi-stream acceptance where appropriate. Never default to red general waste if the item is recyclable or organic. Respond with exactly ONE JSON object describing the single primary item in the photo — never a JSON array, never multiple items, never markdown code fences, never any text before or after the JSON.",
         },
       });
     } catch (visionErr) {
@@ -1762,6 +1763,15 @@ Return ONLY a valid JSON object with this schema:
     }
 
     const parsed = unwrapSingleItem(aiResult?.text ? cleanAndParseJson<any>(aiResult.text) : null);
+
+    // The AI explicitly flagged the photo as unclear (too dark/blurry, or not a waste item at all).
+    // Surface that honestly instead of forcing a guessed bin classification or polluting the encyclopedia.
+    if (parsed && parsed.isUnclear) {
+      return res.json(buildUnclearPhotoResult(
+        parsed.unclearReason || "We couldn't clearly identify a waste item in this photo."
+      ));
+    }
+
     if (parsed && parsed.itemName) {
       const searchQueries = (aiResult?.webSearchQueries && aiResult.webSearchQueries.length > 0)
         ? aiResult.webSearchQueries
@@ -1776,6 +1786,11 @@ Return ONLY a valid JSON object with this schema:
       return res.json({ ...processed, encyclopediaItem });
     }
 
+    if (!detectedFallbackItem) {
+      return res.json(buildUnclearPhotoResult(
+        "AI photo analysis didn't return a usable result this time — the service may be busy. Please try again, or describe the item in the notes field."
+      ));
+    }
     const fallback = getFallbackInspection(detectedFallbackItem);
     const searchQueries = [
       `${detectedFallbackItem} municipal recycling and waste sorting guidelines`,
@@ -1799,6 +1814,11 @@ Return ONLY a valid JSON object with this schema:
       req.body?.visualHint,
       req.body?.detectedCategory
     );
+    if (!detectedFallbackItem) {
+      return res.json(buildUnclearPhotoResult(
+        "AI photo analysis is temporarily unavailable — please try again in a moment, or describe the item in the notes field."
+      ));
+    }
     const fallback = getFallbackInspection(detectedFallbackItem);
     const searchQueries = [
       `${detectedFallbackItem} municipal recycling and waste sorting guidelines`,

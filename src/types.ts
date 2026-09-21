@@ -146,4 +146,6 @@ export interface InspectionResult {
   detectedMaterials?: string[];
   photoDataUrl?: string;
   encyclopediaItem?: WasteItem;
+  isUnclear?: boolean;
+  unclearReason?: string;
 }
