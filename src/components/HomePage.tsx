@@ -630,6 +630,8 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
         return 'bg-blue-100 text-blue-900 border-blue-300';
       case 'cloth_recycling':
         return 'bg-teal-100 text-teal-900 border-teal-300 font-bold';
+      case 'soft_plastic_dropoff':
+        return 'bg-cyan-100 text-cyan-900 border-cyan-300 font-bold';
       case 'e_waste':
         return 'bg-stone-900 text-amber-300 border-stone-800 font-bold';
       case 'medical_waste':
@@ -655,6 +657,8 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
         return '🔵 Blue: Cardboard & Paper';
       case 'cloth_recycling':
         return '👕 Cloth: Designated Drop-Off (Station, Coles)';
+      case 'soft_plastic_dropoff':
+        return '🛍️ Soft Plastic: Supermarket Drop-Off';
       case 'e_waste':
         return '🏬 E-Waste: Designated Drop-Off';
       case 'medical_waste':

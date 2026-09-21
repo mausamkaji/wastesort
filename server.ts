@@ -514,9 +514,10 @@ function postProcessInspectionResult(
     lower.includes("pizza") &&
     (lower.includes("clean") || lower.includes("unused") || lower.includes("dry") || lower.includes("unsoiled") || lower.includes("new") || lower.includes("brand new") || lower.includes("clean lid") || lower.includes("clean top"));
 
-  // Bubble wrap & packaging air pillows check: Soft flexible LDPE films act as tanglers that jam conveyor axles and disc screens.
-  // When in doubt or unsure, universal waste standards mandate sending them to Red General Waste.
-  const isBubbleWrapOrAirPillow =
+  // Soft plastic & plastic film check: Flexible LDPE films (bags, wrap, bubble wrap, chip packets) act as
+  // tanglers that jam conveyor axles and disc screens at curbside MRFs. They must go to dedicated supermarket
+  // soft-plastic drop-off points instead, falling back to Red General Waste only if a drop-off isn't accessible.
+  const isSoftPlasticOrFilm =
     lower.includes("bubble wrap") ||
     lower.includes("bubblewrap") ||
     lower.includes("bubble packaging") ||
@@ -524,7 +525,27 @@ function postProcessInspectionResult(
     lower.includes("air cushion") ||
     lower.includes("air bag packaging") ||
     lower.includes("inflatable packaging") ||
-    lower.includes("packing peanut");
+    lower.includes("packing peanut") ||
+    lower.includes("soft plastic") ||
+    lower.includes("plastic film") ||
+    lower.includes("cling wrap") ||
+    lower.includes("cling film") ||
+    lower.includes("plastic wrap") ||
+    lower.includes("plastic bag") ||
+    lower.includes("shopping bag") ||
+    lower.includes("grocery bag") ||
+    lower.includes("bread bag") ||
+    lower.includes("chip packet") ||
+    lower.includes("chip bag") ||
+    lower.includes("frozen food bag") ||
+    lower.includes("freezer bag") ||
+    lower.includes("ziplock") ||
+    lower.includes("zip lock") ||
+    lower.includes("sandwich bag") ||
+    lower.includes("produce bag") ||
+    lower.includes("courier satchel") ||
+    lower.includes("mailer bag") ||
+    (lower.includes("plastic") && lower.includes("wrapper"));
 
   // Paper towels, paper napkins, tissues, and serviettes check:
   // Strictly Red Bin (general_waste), NOT organic and NOT clothes donation.
@@ -672,13 +693,19 @@ function postProcessInspectionResult(
         reason: "Styrofoam (expanded polystyrene EPS #6) meat trays only go to General Waste (Red Lid). They can NEVER go in the yellow recycling bin, green organic/FOGO bin, or orange meat & bones bin. Plastic foam crumbles into static microplastics and ruins compost, recycling, and biological bone-meal rendering."
       }
     ];
-  } else if (isBubbleWrapOrAirPillow) {
+  } else if (isSoftPlasticOrFilm) {
     acceptableBins = [
+      {
+        bin: "soft_plastic_dropoff",
+        binName: "Supermarket Soft Plastic Drop-Off Bin",
+        condition: "Clean, dry soft plastics and packaging film",
+        reason: "Soft plastics and film (bags, wrap, bubble wrap, chip packets) are flexible LDPE films that act as 'tanglers' jamming rotating disc screens and sorting machinery at curbside MRFs. Take clean, dry soft plastics to dedicated collection bins at participating supermarkets (Coles, Woolworths) or council drop-off points, where they're reprocessed into outdoor furniture, bollards, and road-base additives."
+      },
       {
         bin: "general_waste",
         binName: "Red Lid Bin: General Waste",
-        condition: "Soft Plastic & Packaging Film (Universal Household Rule)",
-        reason: "Flexible bubble wrap and packaging air pillows are soft LDPE films that act as 'tanglers' jamming sorting screens in MRF machinery. Unless using specialized supermarket soft-plastic return drop-offs, they belong strictly in Red General Waste."
+        condition: "No drop-off point accessible, or soiled/contaminated film",
+        reason: "If a supermarket or council soft-plastic drop-off point isn't accessible, or the film is food-soiled and can't be cleaned, dispose of it in the Red Lid General Waste bin. It must never go into Yellow recycling, Blue paper, or Green organic bins."
       }
     ];
   } else if (isCoffeeCup) {
@@ -803,6 +830,7 @@ function postProcessInspectionResult(
     hard_rubbish: "Council Hard Rubbish Collection",
     medical_waste: "White Lid Bin (Medical Waste)",
     cloth_recycling: "Clothing & Textile Drop-Off (Stations, Coles, Charity Hubs)",
+    soft_plastic_dropoff: "Soft Plastic Drop-Off (Supermarket Collection Bins)",
   };
 
   let finalPrimary = normalizedPrimary;
@@ -812,8 +840,8 @@ function postProcessInspectionResult(
     finalPrimary = "general_waste";
   } else if (isStyrofoamMeatTray) {
     finalPrimary = "general_waste";
-  } else if (isBubbleWrapOrAirPillow) {
-    finalPrimary = "general_waste";
+  } else if (isSoftPlasticOrFilm) {
+    finalPrimary = "soft_plastic_dropoff";
   } else if (isCoffeeCup) {
     finalPrimary = "general_waste";
   } else if (isCeramicOrNonContainerGlass) {
@@ -901,14 +929,15 @@ function postProcessInspectionResult(
       "Do NOT place in clothing donation bins or textile collection banks",
       "Do NOT place in the Blue Cardboard & Paper recycling bin"
     ];
-  } else if (isBubbleWrapOrAirPillow) {
-    whyItGoesHere = "Plastic bubble wraps and air pillows are soft flexible films (LDPE #4). They act as 'tanglers'—wrapping tightly around spinning sorting discs and conveyor axles at recycling facilities, triggering emergency shutdowns. Unless you have access to a dedicated soft-plastics drop-off, bubble wrap and air pillows strictly belong in General Waste (Red Lid Bin).";
-    wishcyclingWarning = "Do NOT put plastic bubble wrap or packaging air pillows into the yellow recycling bin or blue paper bin! Soft films jam sorting machinery.";
-    verificationNote = "Verified with Municipal Solid Waste & EPA Standards: Bubble wrap and packaging air pillows belong in General Waste (Red Lid).";
+  } else if (isSoftPlasticOrFilm) {
+    whyItGoesHere = "Soft plastics and plastic film — shopping bags, cling wrap, bubble wrap, air pillows, bread bags, and chip packets — are flexible LDPE/PP films (LDPE #4). They act as 'tanglers', wrapping tightly around spinning sorting discs and conveyor axles at curbside MRFs and triggering emergency shutdowns, so they can never go in the yellow, blue, or green household bins. Take clean, dry soft plastics to a dedicated supermarket soft-plastic drop-off bin (Coles, Woolworths) or council collection point, where they're reprocessed into outdoor furniture, bollards, and road-base additives. If no drop-off is accessible, they go in General Waste (Red Lid Bin).";
+    wishcyclingWarning = "Do NOT put soft plastics, plastic bags, or packaging film into the yellow recycling bin or blue paper bin! Soft films jam sorting machinery — take them to a supermarket soft-plastic drop-off instead.";
+    verificationNote = "Verified with Municipal Solid Waste & EPA Standards: Soft plastics and film belong at a dedicated supermarket or council soft-plastic drop-off point, or General Waste (Red Lid) if no drop-off is accessible.";
     prepInstructions = [
-      "Pierce or snip packaging air pillows to deflate them fully to conserve bin volume",
-      "Ensure no paper address labels or cardboard packing receipts remain stuck inside",
-      "Place bubble wrap and air cushions securely into the Red Lid General Waste bin (never in yellow or blue bins)"
+      "Make sure the soft plastic or film is clean and dry (no food residue)",
+      "Take it to a participating supermarket soft-plastic drop-off bin (e.g. Coles, Woolworths) or council collection point",
+      "Pierce or snip air pillows to deflate them fully to conserve space",
+      "If no drop-off point is accessible, place it into the Red Lid General Waste bin (never in yellow or blue bins)"
     ];
   } else if (isUnsureOrAmbiguous) {
     whyItGoesHere = "When in doubt or unsure about an unidentifiable object, universal waste sorting protocol mandates placing items into General Waste (Red Lid Bin) to prevent wishcycling contamination.";
@@ -987,8 +1016,10 @@ function postProcessInspectionResult(
       ? "Red Lid Bin (General Waste)"
       : isStyrofoamMeatTray
       ? "Red Lid Bin (General Waste)"
-      : (isBubbleWrapOrAirPillow || isUnsureOrAmbiguous)
+      : isUnsureOrAmbiguous
       ? "Red Lid Bin (General Waste)"
+      : isSoftPlasticOrFilm
+      ? "Soft Plastic Drop-Off (Supermarket Collection Bins)"
       : isClothingOrTextile
       ? "Clothing & Textile Drop-Off (Stations, Coles, Charity Hubs)"
       : isCleanPizzaBox
@@ -2195,7 +2226,7 @@ Return ONLY a valid JSON object matching this schema:
   }
 });
 
-function normalizeItemBin(rawBin: string, category?: string, name?: string): 'general_waste' | 'commingled_recycling' | 'organic' | 'paper_cardboard' | 'cloth_recycling' | 'e_waste' | 'medical_waste' | 'meat_bones' | 'hard_rubbish' {
+function normalizeItemBin(rawBin: string, category?: string, name?: string): 'general_waste' | 'commingled_recycling' | 'organic' | 'paper_cardboard' | 'cloth_recycling' | 'soft_plastic_dropoff' | 'e_waste' | 'medical_waste' | 'meat_bones' | 'hard_rubbish' {
   const b = (rawBin || '').toLowerCase().trim();
   const c = (category || '').toLowerCase().trim();
   const n = (name || '').toLowerCase().trim();

@@ -4,6 +4,7 @@ export type BinType =
   | 'organic' 
   | 'paper_cardboard' 
   | 'cloth_recycling'
+  | 'soft_plastic_dropoff'
   | 'e_waste'
   | 'medical_waste'
   | 'meat_bones'

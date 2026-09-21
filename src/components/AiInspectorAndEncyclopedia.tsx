@@ -593,6 +593,23 @@ export const AiInspectorAndEncyclopedia: React.FC<AiInspectorAndEncyclopediaProp
       return 'bg-purple-100 text-purple-900 border-purple-300 font-bold';
     }
 
+    // Soft plastics & plastic film -> supermarket drop-off / red bin
+    if (
+      b === 'soft_plastic_dropoff' ||
+      (!hasExplicitBin && (
+        n.includes('bubble wrap') ||
+        n.includes('air pillow') ||
+        n.includes('soft plastic') ||
+        n.includes('plastic film') ||
+        n.includes('cling wrap') ||
+        n.includes('plastic bag') ||
+        n.includes('shopping bag') ||
+        n.includes('chip packet')
+      ))
+    ) {
+      return 'bg-cyan-100 text-cyan-900 border-cyan-300 font-bold';
+    }
+
     if (
       b === 'e_waste' ||
       (!hasExplicitBin && (
@@ -757,6 +774,23 @@ export const AiInspectorAndEncyclopedia: React.FC<AiInspectorAndEncyclopediaProp
       ))
     ) {
       return '👕 Clothes Donation / Red Bin';
+    }
+
+    // Soft plastics & plastic film -> supermarket drop-off / red bin
+    if (
+      b === 'soft_plastic_dropoff' ||
+      (!hasExplicitBin && (
+        n.includes('bubble wrap') ||
+        n.includes('air pillow') ||
+        n.includes('soft plastic') ||
+        n.includes('plastic film') ||
+        n.includes('cling wrap') ||
+        n.includes('plastic bag') ||
+        n.includes('shopping bag') ||
+        n.includes('chip packet')
+      ))
+    ) {
+      return '🛍️ Soft Plastic Drop-Off / Red Bin';
     }
 
     if (
