@@ -75,7 +75,7 @@ export const TriviaChallenge: React.FC = () => {
   return (
     <div className="max-w-3xl mx-auto px-4 py-6 space-y-6">
       {/* Header Bar */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-stone-200 shadow-2xs">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 glass-strong rounded-2xl p-5">
         <div>
           <div className="flex items-center gap-2">
             <span className="p-1.5 bg-indigo-100 text-indigo-800 rounded-lg text-lg">🧠</span>
@@ -112,7 +112,7 @@ export const TriviaChallenge: React.FC = () => {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
-          className="bg-white border-2 border-stone-200 rounded-3xl p-6 sm:p-8 shadow-xs space-y-6"
+          className="glass-strong rounded-[2rem] p-6 sm:p-8 space-y-6"
         >
           {/* Metadata tag */}
           <div className="flex items-center justify-between">
@@ -141,7 +141,7 @@ export const TriviaChallenge: React.FC = () => {
               const isSelected = selectedOption === idx;
               const isCorrect = idx === currentQuestion.correctIndex;
 
-              let buttonStyle = 'bg-stone-50 border-stone-200 hover:border-indigo-400 text-stone-800';
+              let buttonStyle = 'bg-white/50 border-stone-200/70 hover:border-indigo-400 hover:bg-white/80 text-stone-800';
 
               if (isAnswered) {
                 if (isCorrect) {
@@ -208,7 +208,7 @@ export const TriviaChallenge: React.FC = () => {
                 <button
                   id="btn-next-trivia-question"
                   onClick={handleNext}
-                  className="flex items-center gap-2 bg-stone-900 hover:bg-black text-white font-bold text-xs sm:text-sm px-5 py-2.5 rounded-xl transition-all shadow-xs cursor-pointer"
+                  className="flex items-center gap-2 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white font-bold text-xs sm:text-sm px-5 py-2.5 rounded-xl transition-all shadow-md shadow-emerald-900/20 cursor-pointer"
                 >
                   <span>Next Question</span>
                   <ArrowRight className="w-4 h-4" />

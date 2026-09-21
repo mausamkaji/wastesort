@@ -681,7 +681,7 @@ export const BinMasterGame: React.FC = () => {
   return (
     <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
       {/* Header bar: Mode selection & Game Status */}
-      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 bg-white p-4 sm:p-5 rounded-3xl border border-stone-200 shadow-2xs">
+      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 glass-strong rounded-3xl p-4 sm:p-5">
         <div>
           <div className="flex items-center gap-2 flex-wrap">
             <h2 className="text-xl font-extrabold text-stone-900 flex items-center gap-2">
@@ -745,7 +745,7 @@ export const BinMasterGame: React.FC = () => {
       <DailyChallengesCard />
 
       {/* Filter Tabs Bar */}
-      <div className="flex items-center justify-between gap-2 overflow-x-auto no-scrollbar bg-white p-1.5 rounded-2xl border border-stone-200 shadow-2xs text-xs font-semibold">
+      <div className="flex items-center justify-between gap-2 overflow-x-auto no-scrollbar glass p-1.5 rounded-2xl text-xs font-semibold">
         <div className="flex items-center gap-1">
           <button
             id="filter-all-catalog"
@@ -885,7 +885,7 @@ export const BinMasterGame: React.FC = () => {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: -10 }}
             transition={{ duration: 0.2 }}
-            className="bg-white border-2 border-stone-200 rounded-3xl p-6 sm:p-8 text-center shadow-xs relative overflow-hidden"
+            className="glass-strong rounded-[2rem] p-6 sm:p-8 text-center relative overflow-hidden"
           >
             {/* Combo Multiplier indicator */}
             {currentCombo > 0 && (
@@ -1186,7 +1186,7 @@ export const BinMasterGame: React.FC = () => {
                   <button
                     id="btn-next-waste-item"
                     onClick={handleNextItem}
-                    className="flex items-center gap-2 bg-stone-900 hover:bg-black text-white font-bold text-xs sm:text-sm px-5 py-2.5 rounded-xl transition-all shadow-xs cursor-pointer"
+                    className="flex items-center gap-2 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white font-bold text-xs sm:text-sm px-5 py-2.5 rounded-xl transition-all shadow-md shadow-emerald-900/20 cursor-pointer"
                   >
                     <span>Next Item</span>
                     <ArrowRight className="w-4 h-4" />
@@ -1203,7 +1203,7 @@ export const BinMasterGame: React.FC = () => {
                     key={bin.type}
                     id={`btn-sort-${bin.type}`}
                     onClick={() => handleSort(bin.type)}
-                    className={`group relative rounded-2xl border-2 transition-all cursor-pointer overflow-hidden flex flex-col ${bin.bg} ${bin.border} hover:shadow-md hover:scale-[1.01] active:scale-[0.99]`}
+                    className={`group relative rounded-2xl border transition-all duration-200 cursor-pointer overflow-hidden flex flex-col backdrop-blur-sm ${bin.bg} ${bin.border} hover:shadow-lg hover:-translate-y-0.5 active:scale-[0.99]`}
                   >
                     {/* Realistic Bin Lid Top Bar or Designated Drop-Off Header */}
                     <div className={`w-full ${bin.lidColor} ${bin.lidBorder} border-b px-3.5 py-1.5 flex items-center justify-between text-white shadow-2xs`}>
@@ -1239,7 +1239,7 @@ export const BinMasterGame: React.FC = () => {
       </div>
 
       {/* Progress & Quick Stats Footer */}
-      <div className="bg-stone-100/80 rounded-2xl p-4 border border-stone-200 flex flex-wrap items-center justify-between gap-3 text-xs text-stone-600">
+      <div className="glass rounded-2xl p-4 flex flex-wrap items-center justify-between gap-3 text-xs text-stone-600">
         <div className="flex items-center gap-4 flex-wrap">
           <div>
             Total Sorted: <span className="font-bold text-stone-900">{stats.totalSorted}</span>

@@ -14,7 +14,7 @@ export const ImpactDashboard: React.FC = () => {
   return (
     <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
       {/* 1. Level & Hero Summary */}
-      <div className="bg-white border-2 border-stone-200 rounded-3xl p-6 sm:p-8 shadow-xs relative overflow-hidden">
+      <div className="glass-strong rounded-3xl p-6 sm:p-8 relative overflow-hidden">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <div className="w-16 h-16 rounded-2xl bg-emerald-100 border border-emerald-300 text-3xl flex items-center justify-center shadow-xs shrink-0">
@@ -75,7 +75,7 @@ export const ImpactDashboard: React.FC = () => {
           <span>🌱 Estimated Resource Conservation</span>
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="bg-white p-5 rounded-2xl border border-stone-200 shadow-2xs flex items-center gap-4">
+          <div className="glass glass-hover rounded-2xl p-5 flex items-center gap-4">
             <div className="p-3 bg-emerald-50 text-emerald-700 rounded-xl">
               <TreePine className="w-6 h-6" />
             </div>
@@ -87,7 +87,7 @@ export const ImpactDashboard: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-white p-5 rounded-2xl border border-stone-200 shadow-2xs flex items-center gap-4">
+          <div className="glass glass-hover rounded-2xl p-5 flex items-center gap-4">
             <div className="p-3 bg-amber-50 text-amber-700 rounded-xl">
               <Zap className="w-6 h-6" />
             </div>
@@ -99,7 +99,7 @@ export const ImpactDashboard: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-white p-5 rounded-2xl border border-stone-200 shadow-2xs flex items-center gap-4">
+          <div className="glass glass-hover rounded-2xl p-5 flex items-center gap-4">
             <div className="p-3 bg-sky-50 text-sky-700 rounded-xl">
               <Droplets className="w-6 h-6" />
             </div>
@@ -129,10 +129,10 @@ export const ImpactDashboard: React.FC = () => {
             return (
               <div
                 key={badge.id}
-                className={`p-4 rounded-2xl border-2 transition-all flex items-start gap-3.5 ${
+                className={`p-4 rounded-2xl border transition-all flex items-start gap-3.5 ${
                   isUnlocked
-                    ? 'bg-white border-amber-300 shadow-2xs'
-                    : 'bg-stone-50/60 border-stone-200 opacity-60'
+                    ? 'glass border-amber-300/70 shadow-md shadow-amber-900/5'
+                    : 'bg-stone-50/50 border-stone-200/60 opacity-60'
                 }`}
               >
                 <div className={`w-12 h-12 rounded-xl text-2xl flex items-center justify-center shrink-0 ${
@@ -164,7 +164,7 @@ export const ImpactDashboard: React.FC = () => {
       </div>
 
       {/* 4. Level Roadmap */}
-      <div className="bg-white p-6 rounded-3xl border border-stone-200 shadow-2xs space-y-4">
+      <div className="glass-strong rounded-3xl p-6 space-y-4">
         <h3 className="text-base font-extrabold text-stone-900">
           WasteSort Rank Progression Ladder
         </h3>

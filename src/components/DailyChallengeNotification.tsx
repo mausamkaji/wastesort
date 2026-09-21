@@ -21,7 +21,7 @@ export const DailyChallengeNotification: React.FC = () => {
       id="daily-challenge-toast"
       className="fixed bottom-6 right-6 z-50 max-w-md w-full animate-in fade-in slide-in-from-bottom-5 duration-300 pointer-events-auto"
     >
-      <div className="bg-stone-900 text-white p-4 rounded-2xl shadow-2xl border-2 border-amber-400 flex items-start gap-3.5 relative overflow-hidden">
+      <div className="glass-dark text-white p-4 rounded-2xl ring-1 ring-amber-400/40 flex items-start gap-3.5 relative overflow-hidden">
         {/* Glow effect */}
         <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/20 rounded-full blur-xl pointer-events-none" />
 

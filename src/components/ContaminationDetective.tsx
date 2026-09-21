@@ -283,7 +283,7 @@ export const ContaminationDetective: React.FC = () => {
   return (
     <div className="max-w-5xl mx-auto px-4 py-6 space-y-6">
       {/* Header Card with Unlimited AI Generation Controls */}
-      <div className="bg-white p-5 sm:p-6 rounded-3xl border border-stone-200 shadow-2xs space-y-4">
+      <div className="glass-strong rounded-3xl p-5 sm:p-6 space-y-4">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 flex-wrap">
@@ -527,12 +527,12 @@ export const ContaminationDetective: React.FC = () => {
               whileTap={{ scale: isRevealed ? 1 : 0.98 }}
               onClick={() => handleItemClick(item.id)}
               id={`detective-item-${item.id}`}
-              className={`p-4 rounded-3xl border-2 transition-all cursor-pointer relative overflow-hidden flex flex-col justify-between ${
+              className={`p-4 rounded-3xl border transition-all cursor-pointer relative overflow-hidden flex flex-col justify-between ${
                 !isRevealed
-                  ? 'bg-white border-stone-200 hover:border-amber-400 shadow-2xs hover:shadow-sm'
+                  ? 'glass glass-hover hover:border-amber-400/60'
                   : item.isContaminant
-                  ? 'bg-rose-50/90 border-rose-400 text-rose-950 shadow-xs'
-                  : 'bg-emerald-50/90 border-emerald-400 text-emerald-950 shadow-xs'
+                  ? 'bg-rose-50/90 border-rose-400 text-rose-950 shadow-md shadow-rose-900/10'
+                  : 'bg-emerald-50/90 border-emerald-400 text-emerald-950 shadow-md shadow-emerald-900/10'
               }`}
             >
               <div className="flex items-start gap-3.5">

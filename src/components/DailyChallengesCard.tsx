@@ -14,7 +14,7 @@ export const DailyChallengesCard: React.FC<DailyChallengesCardProps> = ({ compac
   return (
     <div
       id="daily-challenges-widget"
-      className="bg-white border-2 border-emerald-200/90 rounded-3xl p-5 sm:p-6 shadow-xs relative overflow-hidden"
+      className="glass-strong rounded-3xl p-5 sm:p-6 relative overflow-hidden"
     >
       {/* Decorative subtle background accents */}
       <div className="absolute -top-12 -right-12 w-36 h-36 bg-emerald-100/50 rounded-full blur-2xl pointer-events-none" />
