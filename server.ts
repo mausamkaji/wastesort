@@ -37,6 +37,17 @@ function hasNvidiaKey(): boolean {
   return Boolean(process.env.NVIDIA_API_KEY);
 }
 
+// Anthropic Claude API — used as a last-resort fallback when neither Gemini nor NVIDIA produced
+// a usable answer. Claude follows "respond with JSON only" instructions far more reliably than
+// the free NVIDIA model, so this exists mainly as a quality backstop, not a cost-saving measure.
+const CLAUDE_API_BASE = "https://api.anthropic.com/v1";
+const CLAUDE_MODEL = "claude-haiku-4-5-20251001"; // fast/cheap, multimodal — plenty for structured waste-sorting classification
+const CLAUDE_API_VERSION = "2023-06-01";
+
+function hasClaudeKey(): boolean {
+  return Boolean(process.env.ANTHROPIC_API_KEY);
+}
+
 // Converts a Gemini-shaped { contents, config } request into an NVIDIA chat completion.
 // `contents` is either a plain prompt string, or a Gemini `{ parts: [...] }` object holding
 // an inlineData image part plus a text part (used by the photo-based vision inspector).
@@ -144,8 +155,92 @@ async function executeNvidiaWithFallback(params: {
   return null;
 }
 
-// Tries Gemini first (when configured), then transparently falls back to the free NVIDIA NIM
-// API — either because no Gemini key is set, or because Gemini's quota/cascade was exhausted.
+// Converts a Gemini-shaped { contents, config } request into an Anthropic Messages API call.
+// Mirrors executeNvidiaWithFallback's content conversion so both fallbacks stay consistent.
+async function executeClaudeWithFallback(params: {
+  contents: any;
+  config?: any;
+}): Promise<GeminiExecutionResult | null> {
+  if (!hasClaudeKey()) return null;
+
+  const systemInstruction: string | undefined = params.config?.systemInstruction;
+  const wantsJson = params.config?.responseMimeType === "application/json";
+  const jsonReminder = wantsJson
+    ? " Respond with the JSON object only — no explanation, no preamble, and no markdown code fences before or after it."
+    : "";
+
+  let userContent: any;
+  if (typeof params.contents === "string") {
+    userContent = params.contents;
+  } else {
+    const parts = params.contents?.parts || [];
+    const content: any[] = [];
+    for (const part of parts) {
+      if (part?.inlineData) {
+        content.push({
+          type: "image",
+          source: {
+            type: "base64",
+            media_type: part.inlineData.mimeType || "image/jpeg",
+            data: part.inlineData.data,
+          },
+        });
+      } else if (typeof part?.text === "string") {
+        content.push({ type: "text", text: part.text });
+      }
+    }
+    userContent = content;
+  }
+
+  const isImageRequest = Array.isArray(userContent) && userContent.some((c: any) => c.type === "image");
+
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), isImageRequest ? 55000 : 25000);
+    let response: Response;
+    try {
+      response = await fetch(`${CLAUDE_API_BASE}/messages`, {
+        method: "POST",
+        headers: {
+          "x-api-key": process.env.ANTHROPIC_API_KEY!,
+          "anthropic-version": CLAUDE_API_VERSION,
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          model: CLAUDE_MODEL,
+          max_tokens: 1536,
+          ...(systemInstruction ? { system: systemInstruction + jsonReminder } : {}),
+          messages: [{ role: "user", content: userContent }],
+        }),
+        signal: controller.signal,
+      });
+    } finally {
+      clearTimeout(timeout);
+    }
+
+    if (!response.ok) {
+      const bodyText = await response.text().catch(() => "");
+      if (response.status === 429) {
+        console.info("[AI Resilience] Claude rate limit reached.");
+      } else {
+        console.warn("[AI Resilience Error] Claude:", response.status, bodyText);
+      }
+      return null;
+    }
+
+    const data: any = await response.json();
+    const text = data?.content?.find((c: any) => c.type === "text")?.text?.trim();
+    if (!text) return null;
+
+    return { text, groundingChunks: [], webSearchQueries: [] };
+  } catch (err: any) {
+    console.warn("[AI Resilience Error] Claude:", err?.message || err);
+    return null;
+  }
+}
+
+// Tries Gemini first (when configured), then the free NVIDIA NIM API, then Claude as a final
+// quality backstop — each one only runs if the previous provider is unconfigured or failed.
 async function executeAiWithFallback(
   ai: GoogleGenAI | null,
   params: { contents: any; config?: any }
@@ -154,7 +249,9 @@ async function executeAiWithFallback(
     const result = await executeGeminiWithFallback(ai, params);
     if (result) return result;
   }
-  return executeNvidiaWithFallback(params);
+  const nvidiaResult = await executeNvidiaWithFallback(params);
+  if (nvidiaResult) return nvidiaResult;
+  return executeClaudeWithFallback(params);
 }
 
 // In-memory circuit breaker to prevent repeated calls when quota is exhausted or prepayment credits are depleted
@@ -318,10 +415,11 @@ function unwrapSingleItem<T>(parsed: T | T[] | null): T | null {
 app.get("/api/health", (_req, res) => {
   const geminiEnabled = Boolean(process.env.GEMINI_API_KEY);
   const nvidiaEnabled = hasNvidiaKey();
+  const claudeEnabled = hasClaudeKey();
   res.json({
     status: "ok",
-    aiEnabled: geminiEnabled || nvidiaEnabled,
-    aiProvider: geminiEnabled ? "gemini" : nvidiaEnabled ? "nvidia" : null,
+    aiEnabled: geminiEnabled || nvidiaEnabled || claudeEnabled,
+    aiProvider: geminiEnabled ? "gemini" : nvidiaEnabled ? "nvidia" : claudeEnabled ? "claude" : null,
   });
 });
 
