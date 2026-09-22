@@ -474,6 +474,33 @@ function postProcessInspectionResult(
     lower.includes("wireless mouse") ||
     lower.includes("wireless keyboard");
 
+  // Bulky metal items & scrap metal: steel/aluminum bins, drums, cabinets, shelving, and metal
+  // furniture frames are valuable, 100% recyclable scrap metal — never "not recyclable" general
+  // waste. They're too bulky/heavy for curbside yellow recycling, so they go through council hard
+  // rubbish collection or direct drop-off at a scrap metal recycler, never the red general waste bin.
+  const isBulkyMetalOrHardRubbish =
+    lower.includes("trash can") ||
+    lower.includes("garbage can") ||
+    lower.includes("rubbish bin") ||
+    lower.includes("waste bin") ||
+    lower.includes("metal bin") ||
+    lower.includes("metal drum") ||
+    lower.includes("steel drum") ||
+    lower.includes("oil drum") ||
+    lower.includes("metal barrel") ||
+    lower.includes("metal cabinet") ||
+    lower.includes("filing cabinet") ||
+    lower.includes("metal shelving") ||
+    lower.includes("metal shelf") ||
+    lower.includes("scrap metal") ||
+    lower.includes("metal frame") ||
+    lower.includes("metal bed frame") ||
+    (lower.includes("metal") && lower.includes("furniture")) ||
+    (lower.includes("metal") && lower.includes("table")) ||
+    (lower.includes("metal") && lower.includes("chair")) ||
+    lower.includes("wire fencing") ||
+    lower.includes("metal fencing");
+
   // Takeaway Coffee Cups check: Waterproof PE plastic coating inside cannot be pulped or composted.
   // Strictly Red General Waste bin.
   const isCoffeeCup =
@@ -666,6 +693,15 @@ function postProcessInspectionResult(
         reason: "Anything containing or powered by a battery must go to a designated e-waste drop-off, never a curbside bin. Crushed or punctured lithium and alkaline cells can ignite inside general waste, recycling, and organics collection trucks."
       }
     ];
+  } else if (isBulkyMetalOrHardRubbish) {
+    acceptableBins = [
+      {
+        bin: "hard_rubbish",
+        binName: "Council Hard Rubbish Collection",
+        condition: "Bulky metal items, scrap metal, metal furniture",
+        reason: "Steel and aluminum scrap have real commodity value and are 100% recyclable — they are never 'not recyclable'. Book a council hard rubbish pickup or take it directly to a scrap metal recycler; it is too bulky for the curbside yellow recycling bin."
+      }
+    ];
   } else if (isPaperTowelOrNapkin) {
     acceptableBins = [
       {
@@ -836,6 +872,8 @@ function postProcessInspectionResult(
   let finalPrimary = normalizedPrimary;
   if (isBatteryOrElectronic) {
     finalPrimary = "e_waste";
+  } else if (isBulkyMetalOrHardRubbish) {
+    finalPrimary = "hard_rubbish";
   } else if (isMusselOrHardShell) {
     finalPrimary = "general_waste";
   } else if (isStyrofoamMeatTray) {
@@ -873,6 +911,15 @@ function postProcessInspectionResult(
       "Never place this item in a household red, yellow, or green bin",
       "Take it to a designated e-waste drop-off location, such as a council resource recovery centre or participating electronics retailer",
       "If the battery is removable, you can recycle it separately at a battery collection point",
+    ];
+  } else if (isBulkyMetalOrHardRubbish) {
+    whyItGoesHere = "Steel, aluminum, and other bulky metal items (bins, drums, cabinets, shelving, furniture frames) are valuable, 100% recyclable scrap metal — they are never simply 'not recyclable'. They're too large and heavy for curbside yellow recycling, so they're collected through council hard rubbish pickups or accepted directly by scrap metal recyclers for commodity value.";
+    wishcyclingWarning = "Never throw bulky metal items in the Red General Waste bin destined for landfill — scrap metal is valuable and should always be recovered through hard rubbish collection or a metal recycler.";
+    verificationNote = "Verified with Municipal Waste & Circular Economy Standards: bulky metal items and scrap metal go to council hard rubbish collection or a scrap metal recycler, not general waste.";
+    prepInstructions = [
+      "Do not place in the Red General Waste bin — bulky metal is recyclable scrap, not landfill waste",
+      "Book a council hard rubbish / bulky waste collection, or take it directly to a scrap metal recycler or transfer station",
+      "Remove any non-metal liners, plastic bags, or food residue before drop-off",
     ];
   } else if (isMusselOrHardShell) {
     whyItGoesHere = "Mussel shells, oyster shells, and clam shells are composed of crystalline calcium carbonate (calcite/aragonite). They DO NOT decompose during the standard 6–12 week commercial composting or biological digestion cycles used by municipal FOGO and commercial facilities. More critically, their rock-hard density severely damages, chips, and jams high-speed industrial shredders and trommels. Municipal waste regulations strictly require mussel and oyster shells to be placed in the Red General Waste bin.";
@@ -1018,6 +1065,8 @@ function postProcessInspectionResult(
       ? "Red Lid Bin (General Waste)"
       : isUnsureOrAmbiguous
       ? "Red Lid Bin (General Waste)"
+      : isBulkyMetalOrHardRubbish
+      ? "Council Hard Rubbish Collection (Bulky / Scrap Metal)"
       : isSoftPlasticOrFilm
       ? "Soft Plastic Drop-Off (Supermarket Collection Bins)"
       : isClothingOrTextile
@@ -2522,7 +2571,21 @@ function normalizeItemBin(rawBin: string, category?: string, name?: string): 'ge
     n.includes('carpet') ||
     n.includes('wardrobe') ||
     n.includes('bed base') ||
-    n.includes('bed frame')
+    n.includes('bed frame') ||
+    n.includes('trash can') ||
+    n.includes('garbage can') ||
+    n.includes('rubbish bin') ||
+    n.includes('waste bin') ||
+    n.includes('metal bin') ||
+    n.includes('metal drum') ||
+    n.includes('steel drum') ||
+    n.includes('oil drum') ||
+    n.includes('metal barrel') ||
+    n.includes('metal cabinet') ||
+    n.includes('filing cabinet') ||
+    n.includes('metal shelving') ||
+    n.includes('metal shelf') ||
+    n.includes('scrap metal')
   ) {
     return 'hard_rubbish';
   }
