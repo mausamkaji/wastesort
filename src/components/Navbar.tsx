@@ -2,7 +2,7 @@ import React from 'react';
 import { Sparkles, Flame, Volume2, VolumeX } from 'lucide-react';
 import { useGame } from '../context/GameContext';
 
-export type ActiveTab = 'home' | 'bin_master' | 'contamination_detective' | 'trivia' | 'ai_inspector';
+export type ActiveTab = 'home' | 'bin_master' | 'contamination_detective' | 'trivia' | 'ai_inspector' | 'waste_streams';
 
 interface NavbarProps {
   activeTab: ActiveTab;
@@ -18,9 +18,10 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
   const progressPercent = activeLevelInfo.level >= 7 ? 100 : Math.min(100, Math.max(0, Math.round((xpCurrentLevel / xpSpan) * 100)));
 
   // Bin Master, Detective, and Trivia live under "3 Interactive Games" on the homepage now,
-  // not as their own nav tabs — keeps the bar to the two primary destinations.
+  // not as their own nav tabs — keeps the bar to the primary destinations.
   const navItems = [
     { id: 'home' as ActiveTab, label: 'Home & Guide', icon: '🏠', badge: 'Start' },
+    { id: 'waste_streams' as ActiveTab, label: 'Waste Streams', icon: '🗂️', badge: '9 Streams' },
     { id: 'ai_inspector' as ActiveTab, label: 'AI Inspector', icon: '🤖', badge: 'Smart' },
   ];
 

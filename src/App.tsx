@@ -11,6 +11,7 @@ import { BinMasterGame } from './components/BinMasterGame';
 import { ContaminationDetective } from './components/ContaminationDetective';
 import { TriviaChallenge } from './components/TriviaChallenge';
 import { AiInspectorAndEncyclopedia } from './components/AiInspectorAndEncyclopedia';
+import { WasteStreamsGuide } from './components/WasteStreamsGuide';
 import { DailyChallengeNotification } from './components/DailyChallengeNotification';
 import { Sparkles } from 'lucide-react';
 
@@ -43,6 +44,7 @@ function AppContent() {
       {/* Main View based on tab */}
       <main className="flex-1 pb-16">
         {activeTab === 'home' && <HomePage onNavigate={handleNavigate} />}
+        {activeTab === 'waste_streams' && <WasteStreamsGuide onNavigate={handleNavigate} />}
         {activeTab === 'bin_master' && <BinMasterGame />}
         {activeTab === 'contamination_detective' && <ContaminationDetective />}
         {activeTab === 'trivia' && <TriviaChallenge />}
