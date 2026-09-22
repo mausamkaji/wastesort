@@ -474,11 +474,13 @@ function postProcessInspectionResult(
     lower.includes("wireless mouse") ||
     lower.includes("wireless keyboard");
 
-  // Bulky metal items & scrap metal: steel/aluminum bins, drums, cabinets, shelving, and metal
-  // furniture frames are valuable, 100% recyclable scrap metal — never "not recyclable" general
-  // waste. They're too bulky/heavy for curbside yellow recycling, so they go through council hard
-  // rubbish collection or direct drop-off at a scrap metal recycler, never the red general waste bin.
-  const isBulkyMetalOrHardRubbish =
+  // Bulky or heavy items — regardless of material — are too large for curbside bins and belong in
+  // Council Hard Rubbish, never general waste. isBulky is a signal the vision AI sets from the
+  // photo itself (judging real-world size), so this also catches large items with no keyword match
+  // below (e.g. a big plastic tub, a large wooden crate). Text-only keywords cover the common cases
+  // when there's no photo to judge size from (typed searches, or images the AI didn't flag).
+  const isBulkyOrHardRubbish =
+    item.isBulky === true ||
     lower.includes("trash can") ||
     lower.includes("garbage can") ||
     lower.includes("rubbish bin") ||
@@ -693,13 +695,13 @@ function postProcessInspectionResult(
         reason: "Anything containing or powered by a battery must go to a designated e-waste drop-off, never a curbside bin. Crushed or punctured lithium and alkaline cells can ignite inside general waste, recycling, and organics collection trucks."
       }
     ];
-  } else if (isBulkyMetalOrHardRubbish) {
+  } else if (isBulkyOrHardRubbish) {
     acceptableBins = [
       {
         bin: "hard_rubbish",
         binName: "Council Hard Rubbish Collection",
-        condition: "Bulky metal items, scrap metal, metal furniture",
-        reason: "Steel and aluminum scrap have real commodity value and are 100% recyclable — they are never 'not recyclable'. Book a council hard rubbish pickup or take it directly to a scrap metal recycler; it is too bulky for the curbside yellow recycling bin."
+        condition: "Bulky or heavy items, regardless of material",
+        reason: "Oversized and heavy items don't fit standard curbside bins and are collected through council hard rubbish pickups or accepted directly at transfer stations — regardless of what they're made of. Metal items also have scrap value at a metal recycler."
       }
     ];
   } else if (isPaperTowelOrNapkin) {
@@ -872,7 +874,7 @@ function postProcessInspectionResult(
   let finalPrimary = normalizedPrimary;
   if (isBatteryOrElectronic) {
     finalPrimary = "e_waste";
-  } else if (isBulkyMetalOrHardRubbish) {
+  } else if (isBulkyOrHardRubbish) {
     finalPrimary = "hard_rubbish";
   } else if (isMusselOrHardShell) {
     finalPrimary = "general_waste";
@@ -912,14 +914,14 @@ function postProcessInspectionResult(
       "Take it to a designated e-waste drop-off location, such as a council resource recovery centre or participating electronics retailer",
       "If the battery is removable, you can recycle it separately at a battery collection point",
     ];
-  } else if (isBulkyMetalOrHardRubbish) {
-    whyItGoesHere = "Steel, aluminum, and other bulky metal items (bins, drums, cabinets, shelving, furniture frames) are valuable, 100% recyclable scrap metal — they are never simply 'not recyclable'. They're too large and heavy for curbside yellow recycling, so they're collected through council hard rubbish pickups or accepted directly by scrap metal recyclers for commodity value.";
-    wishcyclingWarning = "Never throw bulky metal items in the Red General Waste bin destined for landfill — scrap metal is valuable and should always be recovered through hard rubbish collection or a metal recycler.";
-    verificationNote = "Verified with Municipal Waste & Circular Economy Standards: bulky metal items and scrap metal go to council hard rubbish collection or a scrap metal recycler, not general waste.";
+  } else if (isBulkyOrHardRubbish) {
+    whyItGoesHere = "This item is too large or heavy for standard curbside household bins. Oversized and bulky items — regardless of material — are collected through council hard rubbish pickups or accepted directly at transfer stations and recycling depots, not sent to general landfill waste. Size and weight, not just material, determine the correct stream: even 'non-recyclable' materials get diverted from landfill at this scale, and metal items also carry real scrap value.";
+    wishcyclingWarning = "Never leave bulky or oversized items in or beside your household red/yellow/green bins — they jam collection truck compactors and are often left uncollected. Book a dedicated hard rubbish pickup instead.";
+    verificationNote = "Verified with Municipal Waste & Circular Economy Standards: bulky or heavy items go to council hard rubbish collection or a transfer station, not general waste, regardless of material.";
     prepInstructions = [
-      "Do not place in the Red General Waste bin — bulky metal is recyclable scrap, not landfill waste",
-      "Book a council hard rubbish / bulky waste collection, or take it directly to a scrap metal recycler or transfer station",
-      "Remove any non-metal liners, plastic bags, or food residue before drop-off",
+      "Do not place in your household red, yellow, or green wheelie bin — it's too large for curbside collection",
+      "Book a council hard rubbish / bulky item collection, or take it directly to a transfer station",
+      "If it's metal, consider a scrap metal recycler for commodity value",
     ];
   } else if (isMusselOrHardShell) {
     whyItGoesHere = "Mussel shells, oyster shells, and clam shells are composed of crystalline calcium carbonate (calcite/aragonite). They DO NOT decompose during the standard 6–12 week commercial composting or biological digestion cycles used by municipal FOGO and commercial facilities. More critically, their rock-hard density severely damages, chips, and jams high-speed industrial shredders and trommels. Municipal waste regulations strictly require mussel and oyster shells to be placed in the Red General Waste bin.";
@@ -1065,8 +1067,8 @@ function postProcessInspectionResult(
       ? "Red Lid Bin (General Waste)"
       : isUnsureOrAmbiguous
       ? "Red Lid Bin (General Waste)"
-      : isBulkyMetalOrHardRubbish
-      ? "Council Hard Rubbish Collection (Bulky / Scrap Metal)"
+      : isBulkyOrHardRubbish
+      ? "Council Hard Rubbish Collection (Bulky / Heavy Item)"
       : isSoftPlasticOrFilm
       ? "Soft Plastic Drop-Off (Supermarket Collection Bins)"
       : isClothingOrTextile
@@ -1752,6 +1754,8 @@ CRITICAL INSTRUCTION (only applies when isUnclear is false): Do NOT default to g
 - Large furniture, mattress, timber -> "hard_rubbish" (Council Hard Rubbish)
 - Takeaway coffee cups, broken ceramics/mugs, greasy pizza boxes, soft plastic wraps -> "general_waste" (Red Lid Bin)
 
+SIZE CHECK (only applies when isUnclear is false): Judge the item's real-world physical size and weight from the photo, not just what it's made of. Set "isBulky": true for anything too large or heavy to fit in a standard kitchen-size bin bag — furniture, mattresses, large appliances, big bins/drums/cabinets, oversized containers, bulky equipment — REGARDLESS of material (plastic, metal, wood, fabric all count). Bulky items are never "general waste" bound for landfill; they go to Council Hard Rubbish collection or a transfer station. Only set "isBulky": false for normal handheld/tabletop-sized household items. isBulky overrides material-based guesses like "not recyclable" — a big plastic tub or metal drum is still hard_rubbish, not general_waste, purely because of its size.
+
 Visual detector hint from camera scanner: "${visualHint || 'None'}"
 User hints or notes: "${userNotes || 'None'}"
 File name: "${fileName || 'None'}"
@@ -1760,6 +1764,7 @@ Return ONLY a valid JSON object with this schema:
 {
   "isUnclear": true | false,
   "unclearReason": "string — only when isUnclear is true, briefly explain what the photo actually shows",
+  "isBulky": true | false,
   "itemName": "Specific identified waste item name (e.g., 'Plastic Water Bottle', 'Aluminum Soda Can', 'Cardboard Box', 'Roast Chicken Bones', 'Apple Core', 'Takeaway Coffee Cup'), or 'Unclear Photo' when isUnclear is true",
   "itemEmoji": "exactly one emoji character that best visually represents the identified item — never a generic box unless truly nothing else fits",
   "detectedMaterials": ["Material 1", "Material 2"],
@@ -1804,7 +1809,7 @@ Return ONLY a valid JSON object with this schema:
         config: {
           responseMimeType: "application/json",
           systemInstruction:
-            "You are WasteSort Vision AI, an expert computer vision model trained on municipal materials recovery facilities (MRFs), commercial compost systems, bio-rendering, e-waste dismantling, and medical waste protocol. Look closely at the actual photo provided and identify the specific, real object(s) visible in it — do not answer with a generic example item unrelated to what is shown. If the photo is too dark, blurry, or does not clearly show a physical waste item (for example a screen, document, person, or empty room), you must say so via isUnclear/unclearReason rather than inventing a plausible-sounding item — a wrong confident guess is far worse than admitting the photo is unclear. Provide precise disposal instructions according to the 7-bin standard, highlighting multi-stream acceptance where appropriate. Never default to red general waste if the item is recyclable or organic. Respond with exactly ONE JSON object describing the single primary item in the photo — never a JSON array, never multiple items, never markdown code fences, never any text before or after the JSON.",
+            "You are WasteSort Vision AI, an expert computer vision model trained on municipal materials recovery facilities (MRFs), commercial compost systems, bio-rendering, e-waste dismantling, and medical waste protocol. Look closely at the actual photo provided and identify the specific, real object(s) visible in it — do not answer with a generic example item unrelated to what is shown. If the photo is too dark, blurry, or does not clearly show a physical waste item (for example a screen, document, person, or empty room), you must say so via isUnclear/unclearReason rather than inventing a plausible-sounding item — a wrong confident guess is far worse than admitting the photo is unclear. Judge real-world physical size from the photo and set isBulky true for anything too large or heavy for a standard kitchen bin bag (furniture, big bins/drums/cabinets, appliances, oversized containers) regardless of material — bulky items always go to Council Hard Rubbish, never general waste, and size overrides material-based 'not recyclable' guesses. Provide precise disposal instructions according to the 7-bin standard, highlighting multi-stream acceptance where appropriate. Never default to red general waste if the item is recyclable, organic, or bulky. Respond with exactly ONE JSON object describing the single primary item in the photo — never a JSON array, never multiple items, never markdown code fences, never any text before or after the JSON.",
         },
       });
     } catch (visionErr) {
