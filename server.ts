@@ -428,7 +428,8 @@ function postProcessInspectionResult(
   parsed: any,
   queryItem: string,
   groundingChunks?: any[],
-  webSearchQueries?: string[]
+  webSearchQueries?: string[],
+  trustBulkySignal: boolean = false
 ) {
   const item = parsed || {};
   const itemName = item.itemName || queryItem || "Unknown Item";
@@ -475,12 +476,14 @@ function postProcessInspectionResult(
     lower.includes("wireless keyboard");
 
   // Bulky or heavy items — regardless of material — are too large for curbside bins and belong in
-  // Council Hard Rubbish, never general waste. isBulky is a signal the vision AI sets from the
-  // photo itself (judging real-world size), so this also catches large items with no keyword match
-  // below (e.g. a big plastic tub, a large wooden crate). Text-only keywords cover the common cases
-  // when there's no photo to judge size from (typed searches, or images the AI didn't flag).
+  // Council Hard Rubbish, never general waste. isBulky is a signal only the /api/inspect-image vision
+  // prompt asks for (judging real-world size from the photo), so it's gated behind trustBulkySignal —
+  // other endpoints never request this field, but a free-tier model can still hallucinate it onto an
+  // unrelated JSON response (observed: a plain text search for "bag of chips" came back isBulky:true
+  // with nothing bulky about it), so an untrusted caller must never act on it. Text-only keywords below
+  // still apply everywhere, for typed searches or images the AI didn't flag.
   const isBulkyOrHardRubbish =
-    item.isBulky === true ||
+    (item.isBulky === true && trustBulkySignal) ||
     lower.includes("trash can") ||
     lower.includes("garbage can") ||
     lower.includes("rubbish bin") ||
@@ -586,11 +589,20 @@ function postProcessInspectionResult(
     lower.includes("facial tissue") ||
     (lower.includes("tissue") && !lower.includes("tissue box"));
 
+  // Sealed/branded retail food packets (e.g. "Daawat Basmati Rice packet", "bag of pasta", "box of
+  // cereal") are a packaged PRODUCT, not loose food scraps — the packaging (plastic/paper/laminate)
+  // must not be routed to the organic bin just because a food-scrap keyword like "rice" or "pasta"
+  // also appears in the product name. Detected separately so it can be excluded below.
+  const isPackagedRetailFood =
+    (lower.includes("packet") || lower.includes("packaging") || lower.includes("unopened") || lower.includes("sealed") || lower.includes("pack of") || lower.includes("bag of") || lower.includes("box of") || lower.includes("wrapper") || lower.includes("pouch")) &&
+    (lower.includes("rice") || lower.includes("pasta") || lower.includes("cereal") || lower.includes("flour") || lower.includes("sugar") || lower.includes("lentil") || lower.includes("bean") || lower.includes("grain") || lower.includes("snack") || lower.includes("noodle") || lower.includes("chip") || lower.includes("biscuit") || lower.includes("cookie"));
+
   // Fruits, vegetables, food scraps, watermelon check: Green Organic / FOGO bin
   const isFruitVegetableOrFoodScrap =
     !isMusselOrHardShell &&
     !isStyrofoamMeatTray &&
     !isCoffeeCup &&
+    !isPackagedRetailFood &&
     (lower.includes("watermelon") ||
       lower.includes("melon") ||
       lower.includes("banana") ||
@@ -702,6 +714,21 @@ function postProcessInspectionResult(
         binName: "Council Hard Rubbish Collection",
         condition: "Bulky or heavy items, regardless of material",
         reason: "Oversized and heavy items don't fit standard curbside bins and are collected through council hard rubbish pickups or accepted directly at transfer stations — regardless of what they're made of. Metal items also have scrap value at a metal recycler."
+      }
+    ];
+  } else if (isPackagedRetailFood) {
+    acceptableBins = [
+      {
+        bin: "organic",
+        binName: "Green Lid Bin: Food Organics (FOGO)",
+        condition: "The food contents only, emptied out of the packaging",
+        reason: "Empty the rice, pasta, cereal, or other dry food into your Green Organic / FOGO bin (or donate if it's still sealed and unexpired) — the food itself composts normally."
+      },
+      {
+        bin: "general_waste",
+        binName: "Red Lid Bin: General Waste",
+        condition: "The empty packet/bag/box itself",
+        reason: "Most branded food packets are multi-layer plastic+paper laminate that curbside recycling can't separate, so once emptied the packaging itself goes in Red General Waste (check for a resin code first — a pure, clean plastic bag may belong in soft plastic drop-off instead)."
       }
     ];
   } else if (isPaperTowelOrNapkin) {
@@ -876,6 +903,8 @@ function postProcessInspectionResult(
     finalPrimary = "e_waste";
   } else if (isBulkyOrHardRubbish) {
     finalPrimary = "hard_rubbish";
+  } else if (isPackagedRetailFood) {
+    finalPrimary = "general_waste";
   } else if (isMusselOrHardShell) {
     finalPrimary = "general_waste";
   } else if (isStyrofoamMeatTray) {
@@ -922,6 +951,16 @@ function postProcessInspectionResult(
       "Do not place in your household red, yellow, or green wheelie bin — it's too large for curbside collection",
       "Book a council hard rubbish / bulky item collection, or take it directly to a transfer station",
       "If it's metal, consider a scrap metal recycler for commodity value",
+    ];
+  } else if (isPackagedRetailFood) {
+    whyItGoesHere = "This is a sealed or branded retail food packet, not loose food scraps — the packaging and the food inside need to be handled separately. Most rice, pasta, cereal, and snack packets use a multi-layer plastic+paper laminate that curbside recycling can't separate, so the empty packet itself belongs in Red General Waste. The food inside, once emptied out, is genuine organic matter that composts normally in the Green FOGO bin.";
+    wishcyclingWarning = "Don't put a whole sealed food packet in any curbside bin as-is — empty the food into organics first, then bin the packaging separately. A full packet in the yellow bin also risks attracting pests and contaminating recyclables.";
+    verificationNote = "Verified with Municipal Waste & Packaging Standards: empty the food into Green Organic / FOGO, then dispose of the packaging in Red General Waste (unless it's a single clean recyclable material).";
+    prepInstructions = [
+      "If unopened and still in date, consider donating it instead of throwing it away",
+      "Empty the rice, pasta, or other dry food into your Green Organic / FOGO bin",
+      "Check the empty packaging for a resin code or paper-only construction — a pure, clean plastic bag may belong in soft plastic drop-off instead of general waste",
+      "If it's a mixed plastic+paper laminate (most branded packets), place the empty packaging in Red General Waste"
     ];
   } else if (isMusselOrHardShell) {
     whyItGoesHere = "Mussel shells, oyster shells, and clam shells are composed of crystalline calcium carbonate (calcite/aragonite). They DO NOT decompose during the standard 6–12 week commercial composting or biological digestion cycles used by municipal FOGO and commercial facilities. More critically, their rock-hard density severely damages, chips, and jams high-speed industrial shredders and trommels. Municipal waste regulations strictly require mussel and oyster shells to be placed in the Red General Waste bin.";
@@ -1069,6 +1108,8 @@ function postProcessInspectionResult(
       ? "Red Lid Bin (General Waste)"
       : isBulkyOrHardRubbish
       ? "Council Hard Rubbish Collection (Bulky / Heavy Item)"
+      : isPackagedRetailFood
+      ? "Red Lid Bin (General Waste) — Empty Food Into Green Organic First"
       : isSoftPlasticOrFilm
       ? "Soft Plastic Drop-Off (Supermarket Collection Bins)"
       : isClothingOrTextile
@@ -1834,7 +1875,7 @@ Return ONLY a valid JSON object with this schema:
             `${parsed.itemName} council bin disposal regulations`,
           ];
 
-      const processed = postProcessInspectionResult(parsed, parsed.itemName, aiResult?.groundingChunks, searchQueries);
+      const processed = postProcessInspectionResult(parsed, parsed.itemName, aiResult?.groundingChunks, searchQueries, true);
       const encyclopediaItem = convertInspectionToWasteItem(processed, parsed.itemName);
       upsertUserSearchedItem(encyclopediaItem);
       return res.json({ ...processed, encyclopediaItem });
