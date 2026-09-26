@@ -580,7 +580,9 @@ function postProcessInspectionResult(
   // Soft plastic & plastic film check: Flexible LDPE films (bags, wrap, bubble wrap, chip packets) act as
   // tanglers that jam conveyor axles and disc screens at curbside MRFs. They must go to dedicated supermarket
   // soft-plastic drop-off points instead, falling back to Red General Waste only if a drop-off isn't accessible.
-  const isSoftPlasticOrFilm =
+  // Item name only (not the AI explanation): a bottle's advice like "don't bag it in a plastic bag"
+  // must not be mistaken for the item itself being a plastic bag.
+  const isSoftPlasticOrFilm = ((lower: string) =>
     lower.includes("bubble wrap") ||
     lower.includes("bubblewrap") ||
     lower.includes("bubble packaging") ||
@@ -608,7 +610,7 @@ function postProcessInspectionResult(
     lower.includes("produce bag") ||
     lower.includes("courier satchel") ||
     lower.includes("mailer bag") ||
-    (lower.includes("plastic") && lower.includes("wrapper"));
+    (lower.includes("plastic") && lower.includes("wrapper")))(itemName.toLowerCase());
 
   // Paper towels, paper napkins, tissues, and serviettes check:
   // Strictly Red Bin (general_waste), NOT organic and NOT clothes donation.
@@ -634,7 +636,7 @@ function postProcessInspectionResult(
     !isStyrofoamMeatTray &&
     !isCoffeeCup &&
     !isPackagedRetailFood &&
-    (lower.includes("watermelon") ||
+    ((lower: string) => lower.includes("watermelon") ||
       lower.includes("melon") ||
       lower.includes("banana") ||
       lower.includes("apple") ||
@@ -663,7 +665,7 @@ function postProcessInspectionResult(
       lower.includes("eggshell") ||
       lower.includes("coffee ground") ||
       lower.includes("tea leaf") ||
-      lower.includes("garden trimming"));
+      lower.includes("garden trimming"))(itemName.toLowerCase());
 
   // Universal Golden Rule: Only mark as unsure/ambiguous if the user explicitly queried an unknown or mystery item.
   // CRITICAL: Do NOT test item.whyItGoesHere, because recycling explanations frequently mention "when in doubt, check council rules",
@@ -694,8 +696,10 @@ function postProcessInspectionResult(
 
   // Clothing & textiles check: All clothing materials go either in the red bin or via clothes donation!
   // Textiles must NEVER go into curbside yellow/blue/green bins because they tangle sorting machinery.
+  // Matches the ITEM NAME only, never the AI's explanation: a bottle's explanation routinely says
+  // "recycled into polyester fabric", which used to route plain PET bottles to clothes donation.
   const isClothingOrTextile =
-    !isPaperTowelOrNapkin && (
+    !isPaperTowelOrNapkin && ((lower: string) => (
       lower.includes("cloth") ||
       lower.includes("clothes") ||
       lower.includes("clothing") ||
@@ -727,7 +731,7 @@ function postProcessInspectionResult(
       lower.includes("handbag") ||
       lower.includes("purse") ||
       (lower.includes("belt") && !lower.includes("conveyor") && !lower.includes("seatbelt") && !lower.includes("seat belt"))
-    );
+    ))(itemName.toLowerCase());
 
   if (isBatteryOrElectronic) {
     acceptableBins = [
