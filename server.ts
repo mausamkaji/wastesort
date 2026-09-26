@@ -473,7 +473,38 @@ function postProcessInspectionResult(
     lower.includes("headphone") ||
     lower.includes("smartwatch") ||
     lower.includes("wireless mouse") ||
-    lower.includes("wireless keyboard");
+    lower.includes("wireless keyboard") ||
+    lower.includes("walkie") ||
+    lower.includes("two-way radio") ||
+    lower.includes("two way radio") ||
+    /\bradio\b/.test(lower) ||
+    lower.includes("gps") ||
+    lower.includes("camcorder") ||
+    lower.includes("digital camera") ||
+    lower.includes("action camera") ||
+    lower.includes("dash cam") ||
+    lower.includes("dashcam") ||
+    lower.includes("drone") ||
+    lower.includes("game console") ||
+    lower.includes("gamepad") ||
+    lower.includes("joystick") ||
+    lower.includes("e-reader") ||
+    lower.includes("kindle") ||
+    lower.includes("router") ||
+    lower.includes("modem") ||
+    lower.includes("power adapter") ||
+    lower.includes("charger") ||
+    lower.includes("smartphone") ||
+    lower.includes("mobile phone") ||
+    lower.includes("cell phone") ||
+    lower.includes("laptop") ||
+    lower.includes("headset") ||
+    lower.includes("baby monitor") ||
+    lower.includes("flashlight") ||
+    lower.includes("electric toothbrush") ||
+    lower.includes("electric shaver") ||
+    lower.includes("mp3 player") ||
+    lower.includes("walkman");
 
   // Bulky or heavy items — regardless of material — are too large for curbside bins and belong in
   // Council Hard Rubbish, never general waste. isBulky is a signal only the /api/inspect-image vision
@@ -1125,7 +1156,7 @@ function postProcessInspectionResult(
     wishcyclingWarning: wishcyclingWarning || undefined,
     lifecycleFact: item.lifecycleFact || undefined,
     upcycleIdeas: Array.isArray(item.upcycleIdeas) ? item.upcycleIdeas : undefined,
-    resinCode: item.resinCode || null,
+    resinCode: item.resinCode && !/^(null|none|n\/a|na|unknown|undefined)$/i.test(String(item.resinCode).trim()) ? item.resinCode : null,
     googleVerified: true,
     verificationNote: verificationNote || (
       acceptableBins.length > 1
@@ -1790,12 +1821,12 @@ CRITICAL INSTRUCTION (only applies when isUnclear is false): Do NOT default to g
 - Clean paper, dry cardboard boxes, non-greasy pizza boxes -> "paper_cardboard" (Blue Lid Bin)
 - Food scraps, vegetable peels, fruit, garden waste -> "organic" (Green Lid Bin)
 - Meat scraps, poultry bones, steak bones, animal carcass -> "meat_bones" (Orange Lid Bin) AND "organic" (Green Lid Bin)
-- Batteries, smartphones, cables, chargers, appliances -> "e_waste" (Designated Drop-Off Location)
+- ANYTHING electronic, battery-powered, or with a plug/cord/circuit board — phones, walkie-talkies and two-way radios, remote controls, GPS units, cameras, game controllers, torches/flashlights, e-readers, headsets, routers, chargers, cables, small appliances, electric toothbrushes, toys with batteries — -> "e_waste" (Designated Drop-Off Location). Electronics are NEVER general waste and NEVER commingled recycling, even though they are made of plastic and metal.
 - Wearable clothing, textiles, shoes, towels -> "cloth_recycling" (Clothing Drop-Off)
 - Large furniture, mattress, timber -> "hard_rubbish" (Council Hard Rubbish)
 - Takeaway coffee cups, broken ceramics/mugs, greasy pizza boxes, soft plastic wraps -> "general_waste" (Red Lid Bin)
 
-SIZE CHECK (only applies when isUnclear is false): Judge the item's real-world physical size and weight from the photo, not just what it's made of. Set "isBulky": true for anything too large or heavy to fit in a standard kitchen-size bin bag — furniture, mattresses, large appliances, big bins/drums/cabinets, oversized containers, bulky equipment — REGARDLESS of material (plastic, metal, wood, fabric all count). Bulky items are never "general waste" bound for landfill; they go to Council Hard Rubbish collection or a transfer station. Only set "isBulky": false for normal handheld/tabletop-sized household items. isBulky overrides material-based guesses like "not recyclable" — a big plastic tub or metal drum is still hard_rubbish, not general_waste, purely because of its size.
+SIZE CHECK (only applies when isUnclear is false): Handheld and tabletop-sized items (phones, radios, tools, kitchenware, packaging) are NEVER bulky — do not describe them as bulky and do not mention bin bags for them; electronics always take the e_waste rule above regardless of size. Judge the item's real-world physical size and weight from the photo, not just what it's made of. Set "isBulky": true for anything too large or heavy to fit in a standard kitchen-size bin bag — furniture, mattresses, large appliances, big bins/drums/cabinets, oversized containers, bulky equipment — REGARDLESS of material (plastic, metal, wood, fabric all count). Bulky items are never "general waste" bound for landfill; they go to Council Hard Rubbish collection or a transfer station. Only set "isBulky": false for normal handheld/tabletop-sized household items. isBulky overrides material-based guesses like "not recyclable" — a big plastic tub or metal drum is still hard_rubbish, not general_waste, purely because of its size.
 
 Visual detector hint from camera scanner: "${visualHint || 'None'}"
 User hints or notes: "${userNotes || 'None'}"
@@ -2562,6 +2593,18 @@ function normalizeItemBin(rawBin: string, category?: string, name?: string): 'ge
     n.includes('earbud') ||
     n.includes('headphone') ||
     n.includes('smartwatch') ||
+    n.includes('walkie') ||
+    n.includes('two-way radio') ||
+    /\bradio\b/.test(n) ||
+    n.includes('gps') ||
+    n.includes('camcorder') ||
+    n.includes('digital camera') ||
+    n.includes('drone') ||
+    n.includes('game console') ||
+    n.includes('gamepad') ||
+    n.includes('router') ||
+    n.includes('headset') ||
+    n.includes('flashlight') ||
     n.includes('phone') ||
     n.includes('cable') ||
     n.includes('charger') ||
