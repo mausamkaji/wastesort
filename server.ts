@@ -760,10 +760,16 @@ function postProcessInspectionResult(
         reason: "Empty the rice, pasta, cereal, or other dry food into your Green Organic / FOGO bin (or donate if it's still sealed and unexpired) — the food itself composts normally."
       },
       {
+        bin: "soft_plastic_dropoff",
+        binName: "Supermarket Soft Plastic Drop-Off Bin",
+        condition: "The empty packet/bag itself, once rinsed or shaken free of crumbs",
+        reason: "Most branded food packets are flexible plastic or plastic+paper/foil laminate film — the same material supermarket soft-plastic collection points (Coles, Woolworths) already take alongside bread bags and chip packets. Curbside yellow recycling can't process it, so it never goes there."
+      },
+      {
         bin: "general_waste",
         binName: "Red Lid Bin: General Waste",
-        condition: "The empty packet/bag/box itself",
-        reason: "Most branded food packets are multi-layer plastic+paper laminate that curbside recycling can't separate, so once emptied the packaging itself goes in Red General Waste (check for a resin code first — a pure, clean plastic bag may belong in soft plastic drop-off instead)."
+        condition: "No drop-off point accessible, or the packaging is soiled/greasy",
+        reason: "If a supermarket soft-plastic drop-off isn't accessible, or the packaging can't be cleaned, dispose of it in Red General Waste instead."
       }
     ];
   } else if (isPaperTowelOrNapkin) {
@@ -939,7 +945,7 @@ function postProcessInspectionResult(
   } else if (isBulkyOrHardRubbish) {
     finalPrimary = "hard_rubbish";
   } else if (isPackagedRetailFood) {
-    finalPrimary = "general_waste";
+    finalPrimary = "soft_plastic_dropoff";
   } else if (isMusselOrHardShell) {
     finalPrimary = "general_waste";
   } else if (isStyrofoamMeatTray) {
@@ -988,14 +994,14 @@ function postProcessInspectionResult(
       "If it's metal, consider a scrap metal recycler for commodity value",
     ];
   } else if (isPackagedRetailFood) {
-    whyItGoesHere = "This is a sealed or branded retail food packet, not loose food scraps — the packaging and the food inside need to be handled separately. Most rice, pasta, cereal, and snack packets use a multi-layer plastic+paper laminate that curbside recycling can't separate, so the empty packet itself belongs in Red General Waste. The food inside, once emptied out, is genuine organic matter that composts normally in the Green FOGO bin.";
-    wishcyclingWarning = "Don't put a whole sealed food packet in any curbside bin as-is — empty the food into organics first, then bin the packaging separately. A full packet in the yellow bin also risks attracting pests and contaminating recyclables.";
-    verificationNote = "Verified with Municipal Waste & Packaging Standards: empty the food into Green Organic / FOGO, then dispose of the packaging in Red General Waste (unless it's a single clean recyclable material).";
+    whyItGoesHere = "This is a sealed or branded retail food packet, not loose food scraps — the packaging and the food inside need to be handled separately. Once emptied, most rice, pasta, cereal, and snack packets are flexible plastic or plastic+paper/foil laminate film, the same material accepted at supermarket soft-plastic drop-off points (Coles, Woolworths) alongside bread bags and chip packets — it never belongs in curbside yellow recycling. The food inside is genuine organic matter that composts normally in the Green FOGO bin.";
+    wishcyclingWarning = "Don't put a whole sealed food packet in any curbside bin as-is — empty the food into organics first, then take the packaging to a supermarket soft-plastic drop-off. A full packet in the yellow bin also risks attracting pests and contaminating recyclables.";
+    verificationNote = "Verified with Municipal Waste & Packaging Standards: empty the food into Green Organic / FOGO, then take the packaging to a supermarket soft-plastic drop-off point, or Red General Waste if none is accessible.";
     prepInstructions = [
       "If unopened and still in date, consider donating it instead of throwing it away",
       "Empty the rice, pasta, or other dry food into your Green Organic / FOGO bin",
-      "Check the empty packaging for a resin code or paper-only construction — a pure, clean plastic bag may belong in soft plastic drop-off instead of general waste",
-      "If it's a mixed plastic+paper laminate (most branded packets), place the empty packaging in Red General Waste"
+      "Shake out crumbs and take the clean, empty packaging to a supermarket soft-plastic drop-off bin (Coles, Woolworths) or council collection point",
+      "If no drop-off is accessible, or the packaging is greasy/soiled, place it in Red General Waste instead"
     ];
   } else if (isMusselOrHardShell) {
     whyItGoesHere = "Mussel shells, oyster shells, and clam shells are composed of crystalline calcium carbonate (calcite/aragonite). They DO NOT decompose during the standard 6–12 week commercial composting or biological digestion cycles used by municipal FOGO and commercial facilities. More critically, their rock-hard density severely damages, chips, and jams high-speed industrial shredders and trommels. Municipal waste regulations strictly require mussel and oyster shells to be placed in the Red General Waste bin.";
@@ -1144,7 +1150,7 @@ function postProcessInspectionResult(
       : isBulkyOrHardRubbish
       ? "Council Hard Rubbish Collection (Bulky / Heavy Item)"
       : isPackagedRetailFood
-      ? "Red Lid Bin (General Waste) — Empty Food Into Green Organic First"
+      ? "Soft Plastic Drop-Off (Supermarket Collection Bins) — Empty Food Into Green Organic First"
       : isSoftPlasticOrFilm
       ? "Soft Plastic Drop-Off (Supermarket Collection Bins)"
       : isClothingOrTextile
