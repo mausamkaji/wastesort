@@ -25,6 +25,7 @@ import {
   BookOpen,
 } from 'lucide-react';
 import { ActiveTab } from './Navbar';
+import { Hero3DBin } from './Hero3DBin';
 import { WASTE_ITEMS } from '../data/wasteItems';
 import { WasteItem, InspectionResult } from '../types';
 import { useEncyclopediaStore, saveValidatedSearchToEncyclopedia } from '../utils/encyclopediaStore';
@@ -396,9 +397,9 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
           </div>
         </div>
 
-        {/* Subtle Background Decorative Graphic */}
-        <div className="absolute right-0 bottom-0 top-0 opacity-10 pointer-events-none hidden md:flex items-center justify-center pr-12 text-[260px] select-none animate-float">
-          🌍
+        {/* 3D Rotating Recycling Bin — spins on scroll, like a product showcase */}
+        <div className="absolute right-0 bottom-0 top-0 pointer-events-none hidden md:block w-[46%]">
+          <Hero3DBin className="w-full h-full" />
         </div>
       </section>
 
