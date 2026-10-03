@@ -93,35 +93,6 @@ export interface UserStats {
   waterSavedLiters: number;
 }
 
-export interface TriviaQuestion {
-  id: string;
-  question: string;
-  options: string[];
-  correctIndex: number;
-  explanation: string;
-  ecoFact: string;
-  difficulty: 'easy' | 'medium' | 'hard';
-}
-
-export interface ContaminantItem {
-  id: string;
-  name: string;
-  emoji: string;
-  isContaminant: boolean;
-  explanation: string;
-  consequence: string;
-}
-
-export interface ContaminationScenario {
-  id: string;
-  title: string;
-  binTarget: BinType;
-  description: string;
-  items: ContaminantItem[];
-  tips: string;
-  isAiGenerated?: boolean;
-}
-
 export interface AcceptableBinOption {
   bin: BinType;
   binName: string;

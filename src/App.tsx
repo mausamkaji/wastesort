@@ -7,12 +7,8 @@ import React, { useState } from 'react';
 import { GameProvider } from './context/GameContext';
 import { Navbar, ActiveTab } from './components/Navbar';
 import { HomePage } from './components/HomePage';
-import { BinMasterGame } from './components/BinMasterGame';
-import { ContaminationDetective } from './components/ContaminationDetective';
-import { TriviaChallenge } from './components/TriviaChallenge';
 import { AiInspectorAndEncyclopedia } from './components/AiInspectorAndEncyclopedia';
 import { WasteStreamsGuide } from './components/WasteStreamsGuide';
-import { DailyChallengeNotification } from './components/DailyChallengeNotification';
 import { Sparkles } from 'lucide-react';
 
 function AppContent() {
@@ -38,16 +34,10 @@ function AppContent() {
       {/* Top sticky Navigation */}
       <Navbar activeTab={activeTab} setActiveTab={setActiveTab} />
 
-      {/* Daily Challenge Global Notification */}
-      <DailyChallengeNotification />
-
       {/* Main View based on tab */}
       <main className="flex-1 pb-16">
         {activeTab === 'home' && <HomePage onNavigate={handleNavigate} />}
         {activeTab === 'waste_streams' && <WasteStreamsGuide onNavigate={handleNavigate} />}
-        {activeTab === 'bin_master' && <BinMasterGame />}
-        {activeTab === 'contamination_detective' && <ContaminationDetective />}
-        {activeTab === 'trivia' && <TriviaChallenge />}
         {activeTab === 'ai_inspector' && (
           <AiInspectorAndEncyclopedia
             initialSubTab={inspectorSubTab}
@@ -63,7 +53,7 @@ function AppContent() {
           <div className="flex items-center gap-2">
             <span className="font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-amber-600">WasteSort Quest</span>
             <span className="text-stone-300">•</span>
-            <span>Gamified Waste Management & Circular Economy Guide</span>
+            <span>Waste Management & Circular Economy Guide</span>
           </div>
           <div className="flex items-center gap-1 text-[11px]">
             <Sparkles className="w-3 h-3 text-amber-500" />

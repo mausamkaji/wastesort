@@ -9,7 +9,6 @@ import {
   ChevronUp,
   Maximize2,
   Minimize2,
-  ArrowRight,
   Camera,
   BookOpen,
 } from 'lucide-react';
@@ -630,13 +629,6 @@ export const WasteStreamsGuide: React.FC<WasteStreamsGuideProps> = ({ onNavigate
                     <ChevronDown className="w-4 h-4" />
                   )}
                 </button>
-                <button
-                  onClick={() => onNavigate('bin_master')}
-                  className="inline-flex items-center justify-center gap-1.5 bg-stone-900 hover:bg-black text-white font-extrabold text-xs sm:text-sm px-4 py-2.5 rounded-xl shadow-xs transition-all cursor-pointer whitespace-nowrap"
-                >
-                  <span>Practice in Game</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </button>
               </div>
             </div>
 
@@ -745,7 +737,7 @@ export const WasteStreamsGuide: React.FC<WasteStreamsGuideProps> = ({ onNavigate
                     <div className="bg-amber-100/90 text-amber-950 p-5 rounded-2xl border border-amber-300 shadow-2xs space-y-2">
                       <div className="flex items-center gap-2 text-amber-900 font-bold text-xs uppercase tracking-wider">
                         <Sparkles className="w-4 h-4 text-amber-700" />
-                        <span>Detective Pro Tip:</span>
+                        <span>Pro Tip:</span>
                       </div>
                       <p className="text-xs text-amber-900 leading-relaxed font-medium">
                         {activeStream.proTip}

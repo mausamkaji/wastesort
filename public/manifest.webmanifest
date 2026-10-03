@@ -1,7 +1,7 @@
 {
   "name": "WasteSort: Waste & Recycling Quest",
   "short_name": "WasteSort",
-  "description": "Master waste management and recycling best practices through interactive gamified sorting challenges, contamination detective puzzles, and AI item inspection.",
+  "description": "Master waste management and recycling best practices with a waste streams guide and AI item inspection.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
