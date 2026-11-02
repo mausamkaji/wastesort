@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Search, Bot, Camera, ImagePlus, Loader2, X, AlertTriangle, Info, Lightbulb } from 'lucide-react';
 import { WASTE_ITEMS } from '../data/wasteItems';
 import { BinType, InspectionResult } from '../types';
-import { toHouseholdPlacement } from '../utils/householdMapping';
+import { toHouseholdPlacement, householdizeText } from '../utils/householdMapping';
 
 type ToolTab = 'search' | 'ai';
 
@@ -132,9 +132,9 @@ function compressImage(dataUrl: string, maxDim = 1280): Promise<string> {
 const ResultCard: React.FC<{ result: ResultView }> = ({ result }) => {
   const placement = toHouseholdPlacement(result.primaryBin, result.context);
   const bin = placement.bin;
-  const why = placement.override?.why ?? result.whyItGoesHere;
-  const prep = placement.override?.prep ?? result.prepInstructions;
-  const warning = placement.override ? undefined : result.warning;
+  const why = householdizeText(placement.override?.why ?? result.whyItGoesHere);
+  const prep = (placement.override?.prep ?? result.prepInstructions).map(householdizeText);
+  const warning = placement.override || !result.warning ? undefined : householdizeText(result.warning);
 
   return (
     <div className={`rounded-2xl border overflow-hidden ${bin ? bin.border : 'border-stone-300'} bg-white/80`}>

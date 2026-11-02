@@ -21,6 +21,53 @@ const COMPOSTABLE_WORDS = /\b(pla|compostable|bioplastic)\b/i;
 const GARDEN_WORDS = /\b(garden|lawn|grass|leaf|leaves|prun\w*|weed\w*|branch\w*|hedge|clipping\w*|flower\w*|twig\w*|bark)\b/i;
 const FOOD_WORDS = /\b(food|fruit|veg\w*|peel\w*|coffee|tea|egg\w*|bread|scrap\w*|leftover\w*|kitchen|cooked|rice|pasta|meat|bone\w*)\b/i;
 
+/**
+ * Catalog and AI text is written for the nine-stream industry system, which has
+ * an orange meat & bones bin, a blue paper/cardboard bin and white medical
+ * containers. Households only have FOGO, Garden, General and Recycling, so this
+ * rewrites those references into household terms.
+ */
+export function householdizeText(text: string): string {
+  const cap = (original: string, offset: number, replacement: string) =>
+    offset === 0 || /[.!?]\s$/.test(text.slice(Math.max(0, offset - 2), offset))
+      ? replacement.charAt(0).toUpperCase() + replacement.slice(1)
+      : replacement;
+
+  return (
+    text
+      // Orange meat & bones bin -> FOGO (households put meat in FOGO)
+      .replace(/(?:🟠\s*)?\borange(?:[- ]lid)?\s+meat\s*(?:&|and)\s*bones(?:\s+(?:lid\s+)?bins?)?/gi, 'FOGO bin')
+      .replace(/\borange(?:[- ]lid)?\s+meat\s+bins?/gi, 'FOGO bin')
+      .replace(/\borange(?:[- ]lid)?\s+bins\b/gi, 'FOGO bins')
+      .replace(/\borange(?:[- ]lid)?\s+bin\b/gi, 'FOGO bin')
+      // ...and collapse the duplicates that creates ("FOGO bin or green organic bin")
+      .replace(/,\s*FOGO bin,\s+or\s+(?:the\s+)?green\s+(?:lid\s+)?(?:organics?\s*\/?\s*)?(?:FOGO\s+)?bins?\b/gi, ' or FOGO bin')
+      .replace(/FOGO bin,?\s+(?:or|and)\s+(?:the\s+)?green\s+(?:lid\s+)?(?:organics?\s*\/\s*)?(?:organics?\s+)?(?:FOGO\s+)?bin/gi, 'FOGO bin')
+      .replace(/((?:green\s+)?organics?\s*\/\s*FOGO bin)\s+or\s+FOGO bin/gi, '$1')
+      .replace(/FOGO bin\s*\(or\s+(?:the\s+)?(?:organic\s+)?(?:FOGO\s+)?bin\b[^)]*\)/gi, 'FOGO bin')
+
+      // Lists of coloured bins that include blue
+      .replace(/\b(?:yellow(?:\s+recycling)?)\s*(?:,\s*|\s+or\s+|\s+and\s+)\s*(?:or\s+)?blue(?:\s+(?:paper|cardboard|lid))?\s+bins?\b/gi, 'recycling bin')
+      .replace(/\bblue\s+or\s+yellow\s+recycling\s+bins\b/gi, 'recycling bins')
+      .replace(/,\s*blue(?:\s+paper)?,\s*or\b/gi, ' or')
+      .replace(/,\s*blue(?=\s*[,)])/gi, '')
+
+      // Blue paper & cardboard bin -> recycling bin
+      .replace(/\bBlue Bin \(Cardboard (?:and|&) Paper\)/gi, 'recycling bin')
+      .replace(
+        /\bblue\s+(?:paper\s*(?:&|and)\s*cardboard|cardboard\s*(?:&|and)\s*paper|cardboard|paper|lid)?\s*(bins?|recycling)\b/gi,
+        (match, kind: string, offset: number) =>
+          cap(match, offset, /recycling/i.test(kind) ? 'recycling' : /s$/i.test(kind) ? 'recycling bins' : 'recycling bin')
+      )
+
+      // White clinical containers -> where a household would actually take it
+      .replace(
+        /\b(?:the\s+)?(?:dedicated\s+|certified\s+)?white\s+Medical\s+Waste\s+(?:disposal\s+)?(?:bins?|containers?)/gi,
+        'a pharmacy or council medical collection point'
+      )
+  );
+}
+
 const byId = (id: string) => HOUSEHOLD_BINS.find(b => b.id === id) ?? null;
 
 /**
