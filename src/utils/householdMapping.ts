@@ -1,0 +1,60 @@
+import { BinType } from '../types';
+import { HOUSEHOLD_BINS, HouseholdBin } from '../data/householdBins';
+
+export interface HouseholdPlacement {
+  /** One of the four household bins, or null when the item belongs to no kerbside bin. */
+  bin: HouseholdBin | null;
+  /** Extra context shown next to the bin (or instead of it when bin is null). */
+  note?: string;
+}
+
+const GARDEN_WORDS = /\b(garden|lawn|grass|leaf|leaves|prun\w*|weed\w*|branch\w*|hedge|clipping\w*|flower\w*|twig\w*|bark)\b/i;
+const FOOD_WORDS = /\b(food|fruit|veg\w*|peel\w*|coffee|tea|egg\w*|bread|scrap\w*|leftover\w*|kitchen|cooked|rice|pasta|meat|bone\w*)\b/i;
+
+const byId = (id: string) => HOUSEHOLD_BINS.find(b => b.id === id) ?? null;
+
+/**
+ * Maps a WasteSort (industry) bin to the four household bins.
+ * `context` is the item name plus tags, used to tell garden waste from food waste.
+ */
+export function toHouseholdPlacement(primaryBin: BinType, context = ''): HouseholdPlacement {
+  switch (primaryBin) {
+    case 'commingled_recycling':
+    case 'paper_cardboard':
+    case 'recycling':
+      return { bin: byId('recycling') };
+
+    case 'organic':
+    case 'compost':
+      return GARDEN_WORDS.test(context) && !FOOD_WORDS.test(context)
+        ? { bin: byId('garden') }
+        : { bin: byId('fogo') };
+
+    case 'meat_bones':
+      return { bin: byId('fogo'), note: 'Meat and bones are accepted in FOGO by most councils. Check yours.' };
+
+    case 'general_waste':
+    case 'landfill':
+      return { bin: byId('general') };
+
+    case 'soft_plastic_dropoff':
+      return {
+        bin: byId('general'),
+        note: 'Better still, take soft plastics to a supermarket soft-plastic drop-off.',
+      };
+
+    case 'cloth_recycling':
+      return { bin: null, note: 'Not for your bins. Donate wearable clothes or use a textile collection bin.' };
+    case 'e_waste':
+      return { bin: null, note: 'Not for your bins. Take it to an e-waste drop-off or your council recovery centre.' };
+    case 'medical_waste':
+      return { bin: null, note: 'Not for your bins. Return sharps and medicines to a pharmacy or council collection.' };
+    case 'hard_rubbish':
+      return { bin: null, note: 'Too bulky for your bins. Book a council hard rubbish collection or visit a tip.' };
+    case 'hazardous_special':
+      return { bin: null, note: 'Hazardous. Take it to a council hazardous waste drop-off.' };
+
+    default:
+      return { bin: byId('general') };
+  }
+}
