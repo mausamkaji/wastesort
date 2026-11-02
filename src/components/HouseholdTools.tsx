@@ -27,25 +27,42 @@ function stem(word: string): string {
   return word;
 }
 
+const STOPWORDS = new Set(['a', 'an', 'the', 'of', 'and', 'my', 'in', 'to', 'for', 'with', 'from', 'old', 'used']);
+
+// British/Australian spellings, so "aluminium" finds "aluminum" items and vice versa.
+const SPELLINGS: Record<string, string> = {
+  aluminium: 'aluminum',
+  yoghurt: 'yogurt',
+  mouldy: 'moldy',
+  mould: 'mold',
+  tyre: 'tire',
+  tyres: 'tires',
+  litre: 'liter',
+  colour: 'color',
+  grey: 'gray',
+};
+
 function tokenize(text: string): string[] {
   return text
     .toLowerCase()
     .split(/[^a-z0-9]+/)
-    .filter(w => w.length >= 2)
-    .map(stem);
+    .filter(w => w.length >= 2 && !STOPWORDS.has(w))
+    .map(w => stem(SPELLINGS[w] ?? w));
 }
 
 /**
- * Scores catalog items against the query using whole words only (a query word
- * may be a prefix of an item word, e.g. "veg" -> "vegetable"). Substring
- * matching is avoided on purpose: "vegetables" contains "table".
+ * Scores catalog items against the query using whole words only (after
+ * stripping simple plurals). Substring and prefix matching are avoided on
+ * purpose: "vegetables" contains "table" and "pill" starts "pillow". For a
+ * multi-word query most of the words must match, so "rubber gloves" does not
+ * return a car tyre just because it is rubber.
  */
 function searchCatalog(query: string) {
   const q = query.trim().toLowerCase();
   const words = tokenize(q);
   if (words.length === 0) return [];
-  const wordHit = (tokens: string[], w: string) =>
-    tokens.some(t => t === w || (w.length >= 3 && t.startsWith(w)));
+  const wordHit = (tokens: string[], w: string) => tokens.includes(w);
+  const minCoverage = words.length === 1 ? 1 : 0.66;
 
   const docs = WASTE_ITEMS.map(item => ({
     item,
@@ -59,13 +76,12 @@ function searchCatalog(query: string) {
       return [w, 1 + Math.log(docs.length / Math.max(df, 1))] as const;
     })
   );
-  const phrase = new RegExp(`\\b${q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`);
 
   return docs
     .map(({ item, nameTokens, tagTokens }) => {
       let score = 0;
       let matched = 0;
-      if (phrase.test(item.name.toLowerCase())) score += 5;
+      if (words.every(w => wordHit(nameTokens, w))) score += 5;
       if (item.tags.some(t => t.toLowerCase() === q)) score += 4;
       for (const w of words) {
         const inName = wordHit(nameTokens, w);
@@ -75,9 +91,11 @@ function searchCatalog(query: string) {
         if (inTags) score += 1 * wt;
         if (inName || inTags) matched += 1;
       }
+      // Prefer shorter, more specific names when scores tie.
+      score -= nameTokens.length * 0.05;
       return { item, score, coverage: matched / words.length };
     })
-    .filter(r => r.score > 0 && r.coverage >= 0.5)
+    .filter(r => r.score > 0 && r.coverage >= minCoverage)
     .sort((a, b) => b.score - a.score)
     .slice(0, 6)
     .map(r => r.item);
@@ -114,6 +132,9 @@ function compressImage(dataUrl: string, maxDim = 1280): Promise<string> {
 const ResultCard: React.FC<{ result: ResultView }> = ({ result }) => {
   const placement = toHouseholdPlacement(result.primaryBin, result.context);
   const bin = placement.bin;
+  const why = placement.override?.why ?? result.whyItGoesHere;
+  const prep = placement.override?.prep ?? result.prepInstructions;
+  const warning = placement.override ? undefined : result.warning;
 
   return (
     <div className={`rounded-2xl border overflow-hidden ${bin ? bin.border : 'border-stone-300'} bg-white/80`}>
@@ -142,12 +163,12 @@ const ResultCard: React.FC<{ result: ResultView }> = ({ result }) => {
             <span>{placement.note}</span>
           </p>
         )}
-        <p>{result.whyItGoesHere}</p>
-        {result.prepInstructions.length > 0 && (
+        <p>{why}</p>
+        {prep.length > 0 && (
           <div>
             <p className="font-bold text-stone-900 mb-1">Before you bin it</p>
             <ul className="space-y-1">
-              {result.prepInstructions.slice(0, 4).map(step => (
+              {prep.slice(0, 4).map(step => (
                 <li key={step} className="flex gap-2">
                   <span className="text-emerald-600 shrink-0">•</span>
                   <span>{step}</span>
@@ -156,10 +177,10 @@ const ResultCard: React.FC<{ result: ResultView }> = ({ result }) => {
             </ul>
           </div>
         )}
-        {result.warning && (
+        {warning && (
           <p className="flex gap-2 text-red-900 bg-red-50 border border-red-200 rounded-xl px-3 py-2">
             <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
-            <span>{result.warning}</span>
+            <span>{warning}</span>
           </p>
         )}
       </div>
