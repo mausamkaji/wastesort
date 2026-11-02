@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Search, Bot, Camera, ImagePlus, Loader2, X, AlertTriangle, Info, Lightbulb } from 'lucide-react';
 import { WASTE_ITEMS } from '../data/wasteItems';
 import { BinType, InspectionResult } from '../types';
@@ -188,7 +188,14 @@ const ResultCard: React.FC<{ result: ResultView }> = ({ result }) => {
   );
 };
 
-export const HouseholdTools: React.FC = () => {
+/** 'none' = the result belongs in none of the four bins; null = no active result. */
+export type BinFocus = string | 'none' | null;
+
+interface HouseholdToolsProps {
+  onFocusChange?: (focus: BinFocus) => void;
+}
+
+export const HouseholdTools: React.FC<HouseholdToolsProps> = ({ onFocusChange }) => {
   const [tab, setTab] = useState<ToolTab>('search');
 
   // Search tab
@@ -205,6 +212,18 @@ export const HouseholdTools: React.FC = () => {
   const [aiResult, setAiResult] = useState<ResultView | null>(null);
   const cameraInput = useRef<HTMLInputElement>(null);
   const uploadInput = useRef<HTMLInputElement>(null);
+
+  // Tell the guide which single bin to show: the best search match, or the AI result.
+  useEffect(() => {
+    let focus: BinFocus = null;
+    if (tab === 'search' && submittedQuery && matches.length > 0) {
+      const top = matches[0];
+      focus = toHouseholdPlacement(top.bin, `${top.name} ${top.tags.join(' ')}`).bin?.id ?? 'none';
+    } else if (tab === 'ai' && aiResult) {
+      focus = toHouseholdPlacement(aiResult.primaryBin, aiResult.context).bin?.id ?? 'none';
+    }
+    onFocusChange?.(focus);
+  }, [tab, submittedQuery, matches, aiResult, onFocusChange]);
 
   const runSearch = (q: string) => {
     setQuery(q);

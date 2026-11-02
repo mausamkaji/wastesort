@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { useCallback, useState } from 'react';
 import { motion } from 'motion/react';
-import { CheckCircle2, XCircle, Lightbulb, ArrowLeft, Factory } from 'lucide-react';
+import { CheckCircle2, XCircle, Lightbulb, ArrowLeft, Factory, Eye } from 'lucide-react';
 import { HOUSEHOLD_BINS } from '../data/householdBins';
-import { HouseholdTools } from './HouseholdTools';
+import { HouseholdTools, BinFocus } from './HouseholdTools';
 
 interface HouseholdGuideProps {
   onBack: () => void;
@@ -10,6 +10,18 @@ interface HouseholdGuideProps {
 }
 
 export const HouseholdGuide: React.FC<HouseholdGuideProps> = ({ onBack, onSwitchToIndustry }) => {
+  // While a search/AI result is active, only the bin it belongs to is shown.
+  const [focus, setFocus] = useState<BinFocus>(null);
+  const [showAll, setShowAll] = useState(false);
+
+  const handleFocusChange = useCallback((next: BinFocus) => {
+    setFocus(next);
+    setShowAll(false);
+  }, []);
+
+  const filtering = focus !== null && !showAll;
+  const visibleBins = filtering ? HOUSEHOLD_BINS.filter(b => b.id === focus) : HOUSEHOLD_BINS;
+
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
       <div className="flex flex-wrap items-center justify-between gap-3 mb-8">
@@ -42,10 +54,31 @@ export const HouseholdGuide: React.FC<HouseholdGuideProps> = ({ onBack, onSwitch
         </p>
       </div>
 
-      <HouseholdTools />
+      <HouseholdTools onFocusChange={handleFocusChange} />
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 sm:gap-6">
-        {HOUSEHOLD_BINS.map((bin, i) => (
+      {focus !== null && (
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-5" id="household-focus-bar">
+          <p className="text-sm font-semibold text-stone-700">
+            {showAll
+              ? 'Showing all four bins'
+              : focus === 'none'
+                ? 'This item does not belong in any of your four bins.'
+                : 'Showing the bin for your result'}
+          </p>
+          <button
+            id="household-toggle-all"
+            type="button"
+            onClick={() => setShowAll(s => !s)}
+            className="inline-flex items-center gap-2 text-sm font-semibold text-stone-700 bg-white/70 hover:bg-white border border-stone-200 px-3.5 py-2 rounded-xl transition-colors cursor-pointer"
+          >
+            <Eye className="w-4 h-4" />
+            {showAll ? 'Show only this bin' : 'Show all bins'}
+          </button>
+        </div>
+      )}
+
+      <div className={`grid grid-cols-1 gap-5 sm:gap-6 ${visibleBins.length > 1 ? 'lg:grid-cols-2' : 'max-w-2xl mx-auto'}`}>
+        {visibleBins.map((bin, i) => (
           <motion.section
             key={bin.id}
             id={`household-bin-${bin.id}`}
