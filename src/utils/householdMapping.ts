@@ -65,6 +65,18 @@ export function householdizeText(text: string): string {
         /\b(?:the\s+)?(?:dedicated\s+|certified\s+)?white\s+Medical\s+Waste\s+(?:disposal\s+)?(?:bins?|containers?)/gi,
         'a pharmacy or council medical collection point'
       )
+      .replace(/\b(?:Dispose|Deposit|Place)(?:\s+directly)?\s+(?:in|into|via)\s+(a pharmacy or council medical collection point)/gi, 'Take it to $1')
+      .replace(/(a pharmacy or council medical collection point)\s+or\s+pharmacy\s+medicine\s+take-?back(?:\s+box)?/gi, '$1')
+
+      // Households have a single FOGO stream, so "combined streams" caveats and "dedicated" bins make no sense
+      .replace(/,?\s+if your council combines the two streams/gi, '')
+      .replace(/\b(?:the\s+)?dedicated\s+FOGO bin/gi, 'the FOGO bin')
+      .replace(/paper pulp\s+\(recycling bin\)\s+or\s+clear PET plastic\s+\(yellow bin\)/gi, 'paper pulp or clear PET plastic (both go in the recycling bin)')
+
+      // Article pass: "in recycling bin" -> "in the recycling bin"
+      .replace(/\b(in|into|on|via|or|than)\s+(standard\s+)?((?:recycling|FOGO)\s+bins?)\b/gi, (_m, prep: string, std: string | undefined, bin: string) =>
+        `${prep} the ${std ?? ''}${bin}`
+      )
   );
 }
 

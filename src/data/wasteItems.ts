@@ -2610,7 +2610,7 @@ export const WASTE_ITEMS: WasteItem[] = [
     category: 'meat_bones',
     bin: 'meat_bones',
     emoji: '🥩',
-    prepInstructions: ['Drain off excess liquid and fat', 'Place in the green FOGO bin, or the meat & bones bin where your council has one', 'Remove all trays, cling film and soaker pads first'],
+    prepInstructions: ['Drain off excess liquid and fat', 'Place in the green FOGO bin (most councils accept meat, so check yours)', 'Remove all trays, cling film and soaker pads first'],
     whyItGoesHere: 'Commercial composting and rendering reach the sustained heat needed to break down meat safely. Home compost heaps do not.',
     wishcyclingWarning: 'Polystyrene trays, absorbent pads and cling film must go in General waste, not with the meat.',
     difficulty: 'tricky',
