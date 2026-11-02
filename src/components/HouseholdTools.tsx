@@ -20,25 +20,64 @@ interface ResultView {
 
 const EXAMPLES = ['pizza box', 'banana peel', 'glass jar', 'chip packet', 'grass clippings'];
 
-/** Scores catalog items against the query: name hit > tag hit > word hit. */
+/** Lowercases and strips a simple plural so "vegetables" and "vegetable" compare equal. */
+function stem(word: string): string {
+  if (word.endsWith('ies') && word.length > 4) return word.slice(0, -3) + 'y';
+  if (word.endsWith('s') && !word.endsWith('ss') && word.length > 3) return word.slice(0, -1);
+  return word;
+}
+
+function tokenize(text: string): string[] {
+  return text
+    .toLowerCase()
+    .split(/[^a-z0-9]+/)
+    .filter(w => w.length >= 2)
+    .map(stem);
+}
+
+/**
+ * Scores catalog items against the query using whole words only (a query word
+ * may be a prefix of an item word, e.g. "veg" -> "vegetable"). Substring
+ * matching is avoided on purpose: "vegetables" contains "table".
+ */
 function searchCatalog(query: string) {
   const q = query.trim().toLowerCase();
-  if (q.length < 2) return [];
-  const words = q.split(/\s+/).filter(w => w.length >= 2);
-  return WASTE_ITEMS
-    .map(item => {
-      const name = item.name.toLowerCase();
-      let score = 0;
-      if (name.includes(q)) score += 5;
-      if (item.tags.some(t => t.toLowerCase() === q)) score += 4;
-      if (item.tags.some(t => t.length >= 3 && (t.toLowerCase().includes(q) || q.includes(t.toLowerCase())))) score += 2;
-      for (const w of words) {
-        if (name.includes(w)) score += 1;
-        if (item.tags.some(t => t.toLowerCase().includes(w))) score += 0.5;
-      }
-      return { item, score };
+  const words = tokenize(q);
+  if (words.length === 0) return [];
+  const wordHit = (tokens: string[], w: string) =>
+    tokens.some(t => t === w || (w.length >= 3 && t.startsWith(w)));
+
+  const docs = WASTE_ITEMS.map(item => ({
+    item,
+    nameTokens: tokenize(item.name),
+    tagTokens: item.tags.flatMap(tokenize),
+  }));
+  // Rarer query words count for more ("vegetable" beats the very common "scrap").
+  const weight = new Map(
+    words.map(w => {
+      const df = docs.filter(d => wordHit(d.nameTokens, w) || wordHit(d.tagTokens, w)).length;
+      return [w, 1 + Math.log(docs.length / Math.max(df, 1))] as const;
     })
-    .filter(r => r.score > 0)
+  );
+  const phrase = new RegExp(`\\b${q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`);
+
+  return docs
+    .map(({ item, nameTokens, tagTokens }) => {
+      let score = 0;
+      let matched = 0;
+      if (phrase.test(item.name.toLowerCase())) score += 5;
+      if (item.tags.some(t => t.toLowerCase() === q)) score += 4;
+      for (const w of words) {
+        const inName = wordHit(nameTokens, w);
+        const inTags = wordHit(tagTokens, w);
+        const wt = weight.get(w) ?? 1;
+        if (inName) score += 2 * wt;
+        if (inTags) score += 1 * wt;
+        if (inName || inTags) matched += 1;
+      }
+      return { item, score, coverage: matched / words.length };
+    })
+    .filter(r => r.score > 0 && r.coverage >= 0.5)
     .sort((a, b) => b.score - a.score)
     .slice(0, 6)
     .map(r => r.item);
