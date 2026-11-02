@@ -9,9 +9,12 @@ import { Navbar, ActiveTab } from './components/Navbar';
 import { HomePage } from './components/HomePage';
 import { AiInspectorAndEncyclopedia } from './components/AiInspectorAndEncyclopedia';
 import { WasteStreamsGuide } from './components/WasteStreamsGuide';
+import { LandingPage, ViewMode } from './components/LandingPage';
+import { HouseholdGuide } from './components/HouseholdGuide';
 import { Sparkles } from 'lucide-react';
 
 function AppContent() {
+  const [viewMode, setViewMode] = useState<ViewMode | null>(null);
   const [activeTab, setActiveTab] = useState<ActiveTab>('home');
   const [inspectorSubTab, setInspectorSubTab] = useState<'ai_inspector' | 'catalog' | 'resin_codes'>('ai_inspector');
 
@@ -31,14 +34,30 @@ function AppContent() {
         <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-cyan-200/15 rounded-full blur-3xl animate-blob animation-delay-4000" />
       </div>
 
-      {/* Top sticky Navigation */}
-      <Navbar activeTab={activeTab} setActiveTab={setActiveTab} />
+      {/* Top sticky Navigation (industry view only) */}
+      {viewMode === 'industry' && (
+        <Navbar
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          onChangeView={() => {
+            setViewMode(null);
+            setActiveTab('home');
+          }}
+        />
+      )}
 
-      {/* Main View based on tab */}
+      {/* Main view based on selected mode */}
       <main className="flex-1 pb-16">
-        {activeTab === 'home' && <HomePage onNavigate={handleNavigate} />}
-        {activeTab === 'waste_streams' && <WasteStreamsGuide onNavigate={handleNavigate} />}
-        {activeTab === 'ai_inspector' && (
+        {viewMode === null && <LandingPage onSelect={setViewMode} />}
+        {viewMode === 'household' && (
+          <HouseholdGuide
+            onBack={() => setViewMode(null)}
+            onSwitchToIndustry={() => setViewMode('industry')}
+          />
+        )}
+        {viewMode === 'industry' && activeTab === 'home' && <HomePage onNavigate={handleNavigate} />}
+        {viewMode === 'industry' && activeTab === 'waste_streams' && <WasteStreamsGuide onNavigate={handleNavigate} />}
+        {viewMode === 'industry' && activeTab === 'ai_inspector' && (
           <AiInspectorAndEncyclopedia
             initialSubTab={inspectorSubTab}
             onSubTabChange={(st) => setInspectorSubTab(st)}

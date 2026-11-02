@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sparkles, Flame, Volume2, VolumeX } from 'lucide-react';
+import { Sparkles, Flame, Volume2, VolumeX, ArrowLeftRight } from 'lucide-react';
 import { useGame } from '../context/GameContext';
 
 export type ActiveTab = 'home' | 'ai_inspector' | 'waste_streams';
@@ -7,9 +7,10 @@ export type ActiveTab = 'home' | 'ai_inspector' | 'waste_streams';
 interface NavbarProps {
   activeTab: ActiveTab;
   setActiveTab: (tab: ActiveTab) => void;
+  onChangeView?: () => void;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
+export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab, onChangeView }) => {
   const { stats, currentCombo, soundEnabled, toggleSound, activeLevelInfo } = useGame();
 
   // Calculate progress to next level
@@ -124,6 +125,16 @@ export const Navbar: React.FC<NavbarProps> = ({ activeTab, setActiveTab }) => {
               </button>
             );
           })}
+          {onChangeView && (
+            <button
+              id="nav-change-view"
+              onClick={onChangeView}
+              className="ml-auto flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap text-stone-600 hover:text-stone-900 hover:bg-white/60 cursor-pointer transition-colors"
+            >
+              <ArrowLeftRight className="w-4 h-4" />
+              Change view
+            </button>
+          )}
         </nav>
       </div>
     </header>
