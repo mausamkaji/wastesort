@@ -31,7 +31,10 @@ function getGenAI(): GoogleGenAI | null {
 // NVIDIA NIM (build.nvidia.com) free OpenAI-compatible API — used as a no-cost fallback when
 // GEMINI_API_KEY is not configured, or when Gemini's quota is exhausted.
 const NVIDIA_API_BASE = "https://integrate.api.nvidia.com/v1";
-const NVIDIA_MODEL = "meta/llama-3.2-11b-vision-instruct"; // multimodal: handles both text prompts and image inspection (the 90b variant is unresponsive on the free tier as of 2026-09)
+// Multimodal: handles both text prompts and image inspection. The Llama 3.2 vision models were retired
+// from the free tier (404 "Function ... not found" / timeouts as of 2026-11); check GET /v1/models and a
+// real chat call before swapping this, since listed models are not always deployed for the account.
+const NVIDIA_MODEL = "nvidia/nemotron-3.5-super-vl-120b-a12b";
 
 function hasNvidiaKey(): boolean {
   return Boolean(process.env.NVIDIA_API_KEY);
@@ -81,7 +84,11 @@ async function executeNvidiaWithFallback(params: {
     messages.push({ role: "user", content });
   }
 
-  const wantsJson = params.config?.responseMimeType === "application/json";
+  // Callers that combine Gemini's googleSearch tool can't set responseMimeType (Gemini rejects the
+  // pair), so they ask for JSON in the system instruction instead. Honour both, otherwise Nemotron
+  // free-writes and often returns structurally broken JSON.
+  const wantsJson =
+    params.config?.responseMimeType === "application/json" || /JSON object/i.test(systemInstruction || "");
   // Image requests (base64 photo + prompt) take meaningfully longer than plain text prompts
   // on the free tier — a real compressed photo (~150-400KB) can take 20-40s to process.
   const isImageRequest = typeof params.contents !== "string" && Array.isArray(params.contents?.parts) &&
@@ -106,8 +113,10 @@ async function executeNvidiaWithFallback(params: {
           body: JSON.stringify({
             model: NVIDIA_MODEL,
             messages,
-            temperature: 0.4,
-            max_tokens: 1536,
+            temperature: 0.2,
+            max_tokens: 2048,
+            // Nemotron reasons by default (30s+ for our prompts, past our timeout); the JSON answer is all we need.
+            chat_template_kwargs: { enable_thinking: false },
             ...(wantsJson ? { response_format: { type: "json_object" } } : {}),
           }),
           signal: controller.signal,
@@ -134,6 +143,13 @@ async function executeNvidiaWithFallback(params: {
       const data: any = await response.json();
       const text = data?.choices?.[0]?.message?.content?.trim();
       if (!text) return null;
+
+      // Nemotron sometimes emits structurally broken JSON (a stray "}" or an array missing its
+      // brackets). That is random, so retry once rather than dropping to the offline guess.
+      if (wantsJson && cleanAndParseJson(text) === null) {
+        if (attempt < maxAttempts) continue;
+        return null;
+      }
 
       return { text, groundingChunks: [], webSearchQueries: [] };
     } catch (err: any) {
@@ -396,7 +412,12 @@ function cleanAndParseJson<T>(rawText: string): T | null {
     }
   }
 
-  console.warn("[AI Resilience] Could not extract JSON from AI response. Raw text (first 300 chars):", clean.slice(0, 300));
+  console.warn(
+    `[AI Resilience] Could not extract JSON from AI response (${clean.length} chars). Raw text (first 300 chars):`,
+    clean.slice(0, 300),
+    "... (last 200 chars):",
+    clean.slice(-200)
+  );
   return null;
 }
 
