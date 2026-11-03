@@ -1,9 +1,12 @@
-import React, { useCallback, useState } from 'react';
+import React, { Suspense, lazy, useCallback, useState } from 'react';
 import { motion } from 'motion/react';
 import { CheckCircle2, XCircle, Lightbulb, ArrowLeft, Factory, Eye, MapPin } from 'lucide-react';
 import { HOUSEHOLD_BINS } from '../data/householdBins';
 import { HOUSEHOLD_DROPOFFS } from '../data/householdDropoffs';
 import { HouseholdTools, BinFocus } from './HouseholdTools';
+
+// Leaflet is only needed once the drop-off section is on screen.
+const DropoffMap = lazy(() => import('./DropoffMap'));
 
 interface HouseholdGuideProps {
   onBack: () => void;
@@ -227,6 +230,12 @@ export const HouseholdGuide: React.FC<HouseholdGuideProps> = ({ onBack, onSwitch
               </motion.section>
             ))}
           </div>
+
+          <Suspense
+            fallback={<div className="mt-8 h-40 rounded-3xl border border-stone-200 bg-white/60 animate-pulse" aria-hidden="true" />}
+          >
+            <DropoffMap initialCategory={focusIsDropoff ? focus : null} />
+          </Suspense>
         </section>
       )}
     </div>
