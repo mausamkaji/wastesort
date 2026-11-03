@@ -1,9 +1,12 @@
 import { BinType } from '../types';
 import { HOUSEHOLD_BINS, HouseholdBin } from '../data/householdBins';
+import { HOUSEHOLD_DROPOFFS, HouseholdDropoff } from '../data/householdDropoffs';
 
 export interface HouseholdPlacement {
   /** One of the four household bins, or null when the item belongs to no kerbside bin. */
   bin: HouseholdBin | null;
+  /** A reuse/recycling drop-off point (clothes, e-waste, soft plastics) when the item has one. */
+  dropoff?: HouseholdDropoff | null;
   /** Extra context shown next to the bin (or instead of it when bin is null). */
   note?: string;
   /**
@@ -81,6 +84,12 @@ export function householdizeText(text: string): string {
 }
 
 const byId = (id: string) => HOUSEHOLD_BINS.find(b => b.id === id) ?? null;
+const dropoffById = (id: string) => HOUSEHOLD_DROPOFFS.find(d => d.id === id) ?? null;
+
+/** What the guide should show for a placement: a bin id, a drop-off id, or 'none' for other special disposal. */
+export function placementFocus(placement: HouseholdPlacement): string {
+  return placement.bin?.id ?? placement.dropoff?.id ?? 'none';
+}
 
 /**
  * Maps a WasteSort (industry) bin to the four household bins.
@@ -114,12 +123,17 @@ export function toHouseholdPlacement(primaryBin: BinType, context = ''): Househo
 
     case 'soft_plastic_dropoff':
       return {
-        bin: byId('general'),
-        note: 'Better still, take soft plastics to a supermarket soft-plastic drop-off.',
+        bin: null,
+        dropoff: dropoffById('softplastics'),
+        note: 'Only if it is clean and dry. If it is dirty or there is no drop-off near you, use the General bin.',
       };
 
     case 'cloth_recycling':
-      return { bin: null, note: 'Not for your bins. Donate wearable clothes or use a textile collection bin.' };
+      return {
+        bin: null,
+        dropoff: dropoffById('clothing'),
+        note: 'Not for your bins. Fabric jams sorting machines.',
+      };
     case 'e_waste':
       if (HAZARDOUS_WORDS.test(context)) {
         return {
@@ -130,10 +144,11 @@ export function toHouseholdPlacement(primaryBin: BinType, context = ''): Househo
       if (BATTERY_WORDS.test(context)) {
         return {
           bin: null,
-          note: 'Fire risk, so never put it in a bin. Use a supermarket or hardware store battery drop-off, or your council recovery centre.',
+          dropoff: dropoffById('ewaste'),
+          note: 'Fire risk, so never put it in a bin.',
         };
       }
-      return { bin: null, note: 'Not for your bins. Take it to an e-waste drop-off or your council recovery centre.' };
+      return { bin: null, dropoff: dropoffById('ewaste'), note: 'Not for your bins. It has a plug, cord or battery.' };
     case 'medical_waste':
       if (SHARPS_OR_MEDICINE_WORDS.test(context)) {
         return {

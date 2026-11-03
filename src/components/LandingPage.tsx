@@ -24,7 +24,7 @@ const OPTIONS: {
     title: 'Household',
     emoji: '🏡',
     icon: <Home className="w-6 h-6" />,
-    description: 'Simple kerbside sorting for your home. Four bins, clear rules.',
+    description: 'Simple kerbside sorting for your home. Four bins plus drop-off points for clothes, electronics and soft plastics.',
     chips: ['🌿 FOGO', '🍂 Garden', '🗑️ General', '♻️ Recycling'],
     gradient: 'from-emerald-600 to-emerald-500',
     ring: 'hover:ring-emerald-400/60',

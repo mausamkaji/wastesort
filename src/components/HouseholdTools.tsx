@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Search, Bot, Camera, ImagePlus, Loader2, X, AlertTriangle, Info, Lightbulb } from 'lucide-react';
 import { WASTE_ITEMS } from '../data/wasteItems';
 import { BinType, InspectionResult } from '../types';
-import { toHouseholdPlacement, householdizeText } from '../utils/householdMapping';
+import { toHouseholdPlacement, householdizeText, placementFocus } from '../utils/householdMapping';
 
 type ToolTab = 'search' | 'ai';
 
@@ -132,18 +132,19 @@ function compressImage(dataUrl: string, maxDim = 1280): Promise<string> {
 const ResultCard: React.FC<{ result: ResultView }> = ({ result }) => {
   const placement = toHouseholdPlacement(result.primaryBin, result.context);
   const bin = placement.bin;
+  const dropoff = placement.dropoff;
   const why = householdizeText(placement.override?.why ?? result.whyItGoesHere);
   const prep = (placement.override?.prep ?? result.prepInstructions).map(householdizeText);
   const warning = placement.override || !result.warning ? undefined : householdizeText(result.warning);
 
   return (
-    <div className={`rounded-2xl border overflow-hidden ${bin ? bin.border : 'border-stone-300'} bg-white/80`}>
-      <div className={`${bin ? bin.lid : 'bg-stone-600'} text-white px-4 py-3 flex items-center gap-3`}>
-        <span className="text-2xl" aria-hidden="true">{bin ? bin.emoji : '📍'}</span>
+    <div className={`rounded-2xl border overflow-hidden ${bin ? bin.border : dropoff ? dropoff.border : 'border-stone-300'} bg-white/80`}>
+      <div className={`${bin ? bin.lid : dropoff ? dropoff.header : 'bg-stone-600'} text-white px-4 py-3 flex items-center gap-3`}>
+        <span className="text-2xl" aria-hidden="true">{bin ? bin.emoji : dropoff ? dropoff.emoji : '📍'}</span>
         <div className="min-w-0">
           <p className="text-xs font-semibold text-white/80">{result.itemName}</p>
           <p className="text-lg font-extrabold leading-tight" data-testid="household-result-bin">
-            {bin ? `${bin.name} bin` : 'Special disposal'}
+            {bin ? `${bin.name} bin` : dropoff ? `${dropoff.name} drop-off` : 'Special disposal'}
           </p>
         </div>
       </div>
@@ -166,7 +167,7 @@ const ResultCard: React.FC<{ result: ResultView }> = ({ result }) => {
         <p>{why}</p>
         {prep.length > 0 && (
           <div>
-            <p className="font-bold text-stone-900 mb-1">Before you bin it</p>
+            <p className="font-bold text-stone-900 mb-1">{dropoff ? 'Before you take it' : 'Before you bin it'}</p>
             <ul className="space-y-1">
               {prep.slice(0, 4).map(step => (
                 <li key={step} className="flex gap-2">
@@ -188,7 +189,7 @@ const ResultCard: React.FC<{ result: ResultView }> = ({ result }) => {
   );
 };
 
-/** 'none' = the result belongs in none of the four bins; null = no active result. */
+/** A bin id or drop-off id; 'none' = a special disposal with no card here; null = no active result. */
 export type BinFocus = string | 'none' | null;
 
 interface HouseholdToolsProps {
@@ -301,9 +302,9 @@ export const HouseholdTools: React.FC<HouseholdToolsProps> = ({ onFocusChange })
     let focus: BinFocus = null;
     if (tab === 'search' && submittedQuery && matches.length > 0) {
       const top = matches[0];
-      focus = toHouseholdPlacement(top.bin, `${top.name} ${top.tags.join(' ')}`).bin?.id ?? 'none';
+      focus = placementFocus(toHouseholdPlacement(top.bin, `${top.name} ${top.tags.join(' ')}`));
     } else if (tab === 'ai' && aiResult) {
-      focus = toHouseholdPlacement(aiResult.primaryBin, aiResult.context).bin?.id ?? 'none';
+      focus = placementFocus(toHouseholdPlacement(aiResult.primaryBin, aiResult.context));
     }
     onFocusChange?.(focus);
   }, [tab, submittedQuery, matches, aiResult, onFocusChange]);
