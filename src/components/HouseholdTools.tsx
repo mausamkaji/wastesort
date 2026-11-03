@@ -213,6 +213,89 @@ export const HouseholdTools: React.FC<HouseholdToolsProps> = ({ onFocusChange })
   const cameraInput = useRef<HTMLInputElement>(null);
   const uploadInput = useRef<HTMLInputElement>(null);
 
+  // Live camera
+  const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
+  const [cameraStarting, setCameraStarting] = useState(false);
+  const [cameraError, setCameraError] = useState<string | null>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+
+  const stopCamera = () => {
+    setCameraStream(prev => {
+      prev?.getTracks().forEach(t => t.stop());
+      return null;
+    });
+  };
+
+  const startCamera = async () => {
+    setCameraError(null);
+    if (!navigator.mediaDevices?.getUserMedia) {
+      // No live camera API (insecure page or old browser): fall back to the device camera/file picker.
+      cameraInput.current?.click();
+      return;
+    }
+    setCameraStarting(true);
+    try {
+      let stream: MediaStream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } },
+          audio: false,
+        });
+      } catch (firstErr: any) {
+        if (firstErr?.name === 'NotAllowedError' || firstErr?.name === 'SecurityError') throw firstErr;
+        stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+      }
+      setCameraStream(prev => {
+        prev?.getTracks().forEach(t => t.stop());
+        return stream;
+      });
+    } catch (err: any) {
+      const name = err?.name;
+      setCameraError(
+        name === 'NotAllowedError' || name === 'PermissionDeniedError'
+          ? 'Camera access was blocked. Allow the camera in your browser settings, or use Upload photo.'
+          : name === 'NotFoundError' || name === 'DevicesNotFoundError'
+            ? 'No camera was found on this device. Use Upload photo instead.'
+            : name === 'NotReadableError'
+              ? 'The camera is being used by another app. Close it and try again, or use Upload photo.'
+              : 'Could not start the camera. Use Upload photo instead.'
+      );
+    } finally {
+      setCameraStarting(false);
+    }
+  };
+
+  const capturePhoto = () => {
+    const video = videoRef.current;
+    if (!video || !video.videoWidth) {
+      setCameraError('The camera is still starting. Try again in a moment.');
+      return;
+    }
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    setPhoto(canvas.toDataURL('image/jpeg', 0.9));
+    setAiResult(null);
+    setError(null);
+    stopCamera();
+  };
+
+  // Attach the stream to the <video> once it is mounted, and release the camera on unmount.
+  const attachVideo = (node: HTMLVideoElement | null) => {
+    videoRef.current = node;
+    if (node && cameraStream && node.srcObject !== cameraStream) {
+      node.srcObject = cameraStream;
+      node.play().catch(() => {});
+    }
+  };
+  useEffect(() => () => cameraStream?.getTracks().forEach(t => t.stop()), [cameraStream]);
+  useEffect(() => {
+    if (tab !== 'ai') stopCamera();
+  }, [tab]);
+
   // Tell the guide which single bin to show: the best search match, or the AI result.
   useEffect(() => {
     let focus: BinFocus = null;
@@ -442,10 +525,11 @@ export const HouseholdTools: React.FC<HouseholdToolsProps> = ({ onFocusChange })
             <button
               id="household-take-photo"
               type="button"
-              onClick={() => cameraInput.current?.click()}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/80 hover:bg-white border border-stone-300 text-sm font-semibold text-stone-800 cursor-pointer transition-colors"
+              onClick={startCamera}
+              disabled={cameraStarting || !!cameraStream}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/80 hover:bg-white disabled:opacity-60 border border-stone-300 text-sm font-semibold text-stone-800 cursor-pointer transition-colors"
             >
-              <Camera className="w-4 h-4" />
+              {cameraStarting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Camera className="w-4 h-4" />}
               Take photo
             </button>
             <button
@@ -460,6 +544,39 @@ export const HouseholdTools: React.FC<HouseholdToolsProps> = ({ onFocusChange })
             <input ref={cameraInput} type="file" accept="image/*" capture="environment" className="hidden" onChange={onPhotoPicked} />
             <input ref={uploadInput} type="file" accept="image/*" className="hidden" onChange={onPhotoPicked} />
           </div>
+
+          {cameraError && (
+            <p id="household-camera-error" className="flex gap-2 text-sm text-red-900 bg-red-50 border border-red-200 rounded-xl px-3 py-2" role="alert">
+              <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
+              <span>{cameraError}</span>
+            </p>
+          )}
+
+          {cameraStream && (
+            <div id="household-camera" className="relative overflow-hidden rounded-2xl border border-stone-300 bg-black max-w-xl">
+              <video ref={attachVideo} autoPlay playsInline muted className="w-full max-h-[60vh] object-cover" />
+              <div className="absolute inset-x-0 bottom-0 flex items-center justify-center gap-3 p-3 bg-gradient-to-t from-black/70 to-transparent">
+                <button
+                  id="household-capture"
+                  type="button"
+                  onClick={capturePhoto}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-white text-stone-900 font-bold cursor-pointer hover:bg-stone-100 transition-colors"
+                >
+                  <Camera className="w-4 h-4" />
+                  Capture
+                </button>
+                <button
+                  id="household-camera-close"
+                  type="button"
+                  onClick={stopCamera}
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-black/50 text-white font-semibold cursor-pointer hover:bg-black/70 transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                  Close
+                </button>
+              </div>
+            </div>
+          )}
 
           {photo && (
             <div className="flex flex-col sm:flex-row gap-4 items-start">
