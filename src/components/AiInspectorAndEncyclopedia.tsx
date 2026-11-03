@@ -67,6 +67,9 @@ export const AiInspectorAndEncyclopedia: React.FC<AiInspectorAndEncyclopediaProp
   const [samplePhotoType, setSamplePhotoType] = useState<string | null>(null);
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [isCameraLoading, setIsCameraLoading] = useState(false);
+  // True once the video is playing and has had a moment to settle its exposure.
+  const [isVideoReady, setIsVideoReady] = useState(false);
+  const readyTimer = useRef<number | undefined>(undefined);
   const [isShutterFlashing, setIsShutterFlashing] = useState(false);
   const [useGoogleSearch, setUseGoogleSearch] = useState(true);
 
@@ -224,6 +227,8 @@ export const AiInspectorAndEncyclopedia: React.FC<AiInspectorAndEncyclopediaProp
       const isDenied = err?.name === 'NotAllowedError' || err?.name === 'PermissionDeniedError';
       const isNotFound = err?.name === 'NotFoundError' || err?.name === 'DevicesNotFoundError';
       const isSecurity = err?.name === 'SecurityError';
+      // Another app (Teams, Zoom, the Camera app) already holds the camera.
+      const isBusy = err?.name === 'NotReadableError' || err?.name === 'TrackStartError' || err?.name === 'AbortError';
       setCameraError(
         isDenied
           ? 'Camera permission denied or dismissed. Please allow camera access in your browser or click "Upload Photo" / "Try Sample Rubbish".'
@@ -231,7 +236,9 @@ export const AiInspectorAndEncyclopedia: React.FC<AiInspectorAndEncyclopediaProp
           ? 'No camera found on this device. You can choose an image file or test with sample waste items.'
           : isSecurity
           ? 'Camera access is restricted in this window. You can upload a photo or use sample waste items.'
-          : (err?.message || 'Unable to start camera. Please verify device permissions or use file upload.')
+          : isBusy
+          ? 'The camera is being used by another app or browser tab. Close it (for example Teams, Zoom or the Camera app) and try again, or upload a photo instead.'
+          : 'Unable to start the camera. Please check your device permissions or upload a photo instead.'
       );
       setIsCameraActive(false);
     } finally {
@@ -240,6 +247,8 @@ export const AiInspectorAndEncyclopedia: React.FC<AiInspectorAndEncyclopediaProp
   };
 
   const stopCamera = () => {
+    window.clearTimeout(readyTimer.current);
+    setIsVideoReady(false);
     if (cameraStream) {
       cameraStream.getTracks().forEach(t => t.stop());
       setCameraStream(null);
@@ -250,79 +259,85 @@ export const AiInspectorAndEncyclopedia: React.FC<AiInspectorAndEncyclopediaProp
     setIsCameraActive(false);
   };
 
+  // Switch the camera (and its indicator light) off when leaving the inspector sub-tab.
+  useEffect(() => {
+    if (activeSubTab !== 'ai_inspector') stopCamera();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeSubTab]);
+
   const toggleFacingMode = () => {
     const next = facingMode === 'environment' ? 'user' : 'environment';
     setFacingMode(next);
     startCamera(next);
   };
 
-  const capturePhoto = () => {
+  // Grabs the current video frame as a JPEG, or null (with a message) when there is no usable frame yet.
+  // Webcams often send black frames for a moment while they start and set exposure, and sending one to
+  // the AI just comes back as "could not identify", so refuse those instead.
+  const grabFrame = (): string | null => {
     const video = videoRef.current;
-    if (!video) return;
+    if (!video || !video.videoWidth || !video.videoHeight) {
+      setCameraError('The camera is still starting. Wait a moment, then try again.');
+      return null;
+    }
 
+    const canvas = canvasRef.current ?? document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    if (!ctx) return null;
+
+    try {
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      // Average brightness of a small sample grid; near zero means a black/unlit frame.
+      const sample = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const step = Math.max(1, Math.floor(sample.data.length / 4 / 2000)) * 4;
+      let total = 0;
+      let count = 0;
+      for (let i = 0; i < sample.data.length; i += step) {
+        total += (sample.data[i] + sample.data[i + 1] + sample.data[i + 2]) / 3;
+        count++;
+      }
+      if (count > 0 && total / count < 12) {
+        setCameraError('The camera image is black. Wait a second for it to adjust, check the lens is uncovered and the room is lit, then try again.');
+        return null;
+      }
+
+      setCameraError(null);
+      return canvas.toDataURL('image/jpeg', 0.9);
+    } catch {
+      setCameraError('Unable to capture a frame from the camera. You can upload a photo instead.');
+      return null;
+    }
+  };
+
+  const capturePhoto = () => {
     // Trigger visual shutter flash
     setIsShutterFlashing(true);
     setTimeout(() => setIsShutterFlashing(false), 220);
 
-    const width = video.videoWidth || video.clientWidth || 640;
-    const height = video.videoHeight || video.clientHeight || 480;
-
-    let canvas = canvasRef.current;
-    if (!canvas) {
-      canvas = document.createElement('canvas');
-    }
-    canvas.width = width;
-    canvas.height = height;
-
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    try {
-      ctx.drawImage(video, 0, 0, width, height);
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
-      setCapturedPhotoUrl(dataUrl);
-      setUploadedFileName(null);
-      setSamplePhotoType(null);
-      stopCamera();
-    } catch {
-      setCameraError('Unable to capture frame from camera. You can try taking a photo with file upload.');
-    }
+    const dataUrl = grabFrame();
+    if (!dataUrl) return;
+    setCapturedPhotoUrl(dataUrl);
+    setUploadedFileName(null);
+    setSamplePhotoType(null);
+    stopCamera();
   };
 
   // One-tap Snap & Identify: captures current video frame and immediately runs AI inspection + Google Search
   const snapAndIdentify = () => {
-    const video = videoRef.current;
-    if (!video) return;
-
-    // Trigger visual shutter flash
     setIsShutterFlashing(true);
     setTimeout(() => setIsShutterFlashing(false), 220);
 
-    const width = video.videoWidth || video.clientWidth || 640;
-    const height = video.videoHeight || video.clientHeight || 480;
-
-    let canvas = canvasRef.current;
-    if (!canvas) {
-      canvas = document.createElement('canvas');
-    }
-    canvas.width = width;
-    canvas.height = height;
-
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    try {
-      ctx.drawImage(video, 0, 0, width, height);
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
-      setCapturedPhotoUrl(dataUrl);
-      setUploadedFileName(null);
-      setSamplePhotoType(null);
-      stopCamera();
-      // Immediately run AI identification with Google Search grounding!
-      handleInspectImage(dataUrl);
-    } catch {
-      setCameraError('Unable to capture frame from camera. You can try taking a photo with file upload.');
-    }
+    const dataUrl = grabFrame();
+    if (!dataUrl) return;
+    setCapturedPhotoUrl(dataUrl);
+    setUploadedFileName(null);
+    setSamplePhotoType(null);
+    stopCamera();
+    // Immediately run AI identification with Google Search grounding!
+    handleInspectImage(dataUrl);
   };
 
   const retakePhoto = () => {
@@ -936,7 +951,7 @@ export const AiInspectorAndEncyclopedia: React.FC<AiInspectorAndEncyclopediaProp
             <div className="max-w-xl mx-auto text-center space-y-2">
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 text-xs font-bold border border-emerald-200">
                 <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
-                <span>Powered by Gemini 2.5 & Google Search Grounding</span>
+                <span>AI vision checked against municipal waste rules</span>
               </div>
               <h2 className="text-2xl sm:text-3xl font-black text-stone-900 tracking-tight">
                 Scan WasteSort AI About Rubbish
@@ -1099,6 +1114,11 @@ export const AiInspectorAndEncyclopedia: React.FC<AiInspectorAndEncyclopediaProp
                         autoPlay
                         playsInline
                         muted
+                        onPlaying={() => {
+                          // Give the webcam a moment to set exposure before a capture is allowed.
+                          window.clearTimeout(readyTimer.current);
+                          readyTimer.current = window.setTimeout(() => setIsVideoReady(true), 700);
+                        }}
                         className="w-full h-full object-cover"
                       />
 
@@ -1176,12 +1196,12 @@ export const AiInspectorAndEncyclopedia: React.FC<AiInspectorAndEncyclopediaProp
                           id="btn-snap-and-identify"
                           type="button"
                           onClick={snapAndIdentify}
-                          disabled={isInspecting}
-                          className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-black text-xs sm:text-sm px-5 sm:px-6 py-3 rounded-full shadow-lg border-2 border-white/90 transition-all cursor-pointer"
+                          disabled={isInspecting || !isVideoReady}
+                          className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-60 disabled:cursor-wait active:scale-95 text-white font-black text-xs sm:text-sm px-5 sm:px-6 py-3 rounded-full shadow-lg border-2 border-white/90 transition-all cursor-pointer"
                           title="Snap photo & instantly identify with AI and Google Search"
                         >
-                          <Sparkles className="w-4 h-4 text-amber-300" />
-                          <span>Snap &amp; Identify with AI</span>
+                          {isVideoReady ? <Sparkles className="w-4 h-4 text-amber-300" /> : <Loader2 className="w-4 h-4 animate-spin" />}
+                          <span>{isVideoReady ? 'Snap & Identify with AI' : 'Camera starting…'}</span>
                         </button>
 
                         {/* Standard Capture Button (Take photo to review first) */}
@@ -1189,13 +1209,21 @@ export const AiInspectorAndEncyclopedia: React.FC<AiInspectorAndEncyclopediaProp
                           id="btn-click-photo"
                           type="button"
                           onClick={capturePhoto}
-                          className="w-11 h-11 rounded-full bg-black/60 hover:bg-black/80 text-white flex items-center justify-center backdrop-blur-md border border-white/30 transition-all cursor-pointer"
+                          disabled={!isVideoReady}
+                          className="w-11 h-11 rounded-full bg-black/60 hover:bg-black/80 disabled:opacity-50 text-white flex items-center justify-center backdrop-blur-md border border-white/30 transition-all cursor-pointer"
                           title="Click photo to review before identifying"
                         >
                           <Camera className="w-5 h-5" />
                         </button>
                       </div>
                     </div>
+
+                    {cameraError && (
+                      <p id="camera-live-notice" role="alert" className="flex items-start gap-2 text-xs text-rose-800 bg-rose-50 border border-rose-200 rounded-xl px-3 py-2">
+                        <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                        <span>{cameraError}</span>
+                      </p>
+                    )}
 
                     <div className="flex items-center justify-between text-xs text-stone-500 px-1 font-medium">
                       <span>Tap &ldquo;Snap &amp; Identify with AI&rdquo; for instant vision &amp; search analysis</span>
