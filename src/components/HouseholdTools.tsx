@@ -130,6 +130,34 @@ function compressImage(dataUrl: string, maxDim = 1280): Promise<string> {
 }
 
 const ResultCard: React.FC<{ result: ResultView }> = ({ result }) => {
+  // An unidentified photo comes back with a placeholder bin; never present that as an answer.
+  if (result.unclear) {
+    return (
+      <div className="rounded-2xl border border-stone-300 overflow-hidden bg-white/80" data-testid="household-result-unclear">
+        <div className="bg-stone-600 text-white px-4 py-3 flex items-center gap-3">
+          <span className="text-2xl" aria-hidden="true">❓</span>
+          <div className="min-w-0">
+            <p className="text-xs font-semibold text-white/80">{result.itemName}</p>
+            <p className="text-lg font-extrabold leading-tight" data-testid="household-result-bin">Could not identify it</p>
+          </div>
+        </div>
+        <div className="p-4 space-y-3 text-sm text-stone-700">
+          {result.photoDataUrl && (
+            <img src={result.photoDataUrl} alt="Inspected item" className="w-full max-h-48 object-cover rounded-xl border border-stone-200" />
+          )}
+          <p className="flex gap-2 text-amber-900 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
+            <Info className="w-4 h-4 mt-0.5 shrink-0" />
+            <span>{result.unclear}</span>
+          </p>
+          <p>
+            No bin has been chosen. Try again with the item filling the frame in good light, or type what it is in the box
+            above or in the optional note.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   const placement = toHouseholdPlacement(result.primaryBin, result.context);
   const bin = placement.bin;
   const dropoff = placement.dropoff;
@@ -303,7 +331,7 @@ export const HouseholdTools: React.FC<HouseholdToolsProps> = ({ onFocusChange })
     if (tab === 'search' && submittedQuery && matches.length > 0) {
       const top = matches[0];
       focus = placementFocus(toHouseholdPlacement(top.bin, `${top.name} ${top.tags.join(' ')}`));
-    } else if (tab === 'ai' && aiResult) {
+    } else if (tab === 'ai' && aiResult && !aiResult.unclear) {
       focus = placementFocus(toHouseholdPlacement(aiResult.primaryBin, aiResult.context));
     }
     onFocusChange?.(focus);
