@@ -1,7 +1,30 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { ContactShadows } from '@react-three/drei';
 import * as THREE from 'three';
+
+/** Soft blob under the bin. Avoids @react-three/drei, whose module graph blows the free-tier build memory. */
+function GroundShadow() {
+  const texture = useMemo(() => {
+    const canvas = document.createElement('canvas');
+    canvas.width = canvas.height = 128;
+    const ctx = canvas.getContext('2d')!;
+    const gradient = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
+    gradient.addColorStop(0, 'rgba(0,0,0,0.55)');
+    gradient.addColorStop(0.6, 'rgba(0,0,0,0.2)');
+    gradient.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, 128, 128);
+    return new THREE.CanvasTexture(canvas);
+  }, []);
+  useEffect(() => () => texture.dispose(), [texture]);
+
+  return (
+    <mesh position={[0, -1.35, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+      <planeGeometry args={[4.6, 4.6]} />
+      <meshBasicMaterial map={texture} transparent depthWrite={false} />
+    </mesh>
+  );
+}
 
 /**
  * Procedurally-built recycling bin — no external .glb/.gltf asset or textures,
@@ -87,7 +110,7 @@ export const Hero3DBin: React.FC<{ className?: string }> = ({ className }) => {
         />
         <pointLight position={[-4, 2, -3]} intensity={0.6} color="#fbbf24" />
         <RecyclingBin />
-        <ContactShadows position={[0, -1.35, 0]} opacity={0.45} scale={6} blur={2.4} far={2} />
+        <GroundShadow />
       </Canvas>
     </div>
   );
